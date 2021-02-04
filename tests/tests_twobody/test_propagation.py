@@ -371,6 +371,24 @@ def test_long_propagations_vallado_agrees_farnocchia():
     assert_quantity_allclose(v_mm, v_k)
 
 
+@pytest.mark.filterwarnings("ignore::erfa.core.ErfaWarning")
+def test_long_propagations_vallado_agrees_farnocchia_classical():
+    tof = 100 * u.year
+    r_mm, v_mm = iss.propagate(tof, method=farnocchia, elems_type="classical").rv()
+    r_k, v_k = iss.propagate(tof, method=vallado, elems_type="classical").rv()
+    assert_quantity_allclose(r_mm, r_k)
+    assert_quantity_allclose(v_mm, v_k)
+
+    r_halleys = [-9018878.63569932, -94116054.79839276, 22619058.69943215]  # km
+    v_halleys = [-49.95092305, -12.94843055, -4.29251577]  # km/s
+    halleys = Orbit.from_vectors(Sun, r_halleys * u.km, v_halleys * u.km / u.s)
+
+    r_mm, v_mm = halleys.propagate(tof, method=farnocchia, elems_type="classical").rv()
+    r_k, v_k = halleys.propagate(tof, method=vallado, elems_type="classical").rv()
+    assert_quantity_allclose(r_mm, r_k)
+    assert_quantity_allclose(v_mm, v_k)
+
+
 @st.composite
 def with_units(draw, elements, unit):
     value = draw(elements)

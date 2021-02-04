@@ -295,7 +295,7 @@ def farnocchia_coe(k, p, ecc, inc, raan, argp, nu, tof):
 
 
 @jit
-def farnocchia(k, r0, v0, tof):
+def farnocchia(*elements): # Initially: k, r0, v0, tof
     r"""Propagates orbit using mean motion.
 
     This algorithm depends on the geometric shape of the orbit.
@@ -309,14 +309,33 @@ def farnocchia(k, r0, v0, tof):
 
     Parameters
     ----------
-    k : float
-        Standar Gravitational parameter
-    r0 : ~astropy.units.Quantity
-        Initial position vector wrt attractor center.
-    v0 : ~astropy.units.Quantity
-        Initial velocity vector.
-    tof : float
-        Time of flight (s).
+    Can be either Cartesian or Classical:
+        1. Cartesian
+            k : float
+                Standard Gravitational parameter.
+            r0 : ~astropy.units.Quantity
+                Initial position vector wrt attractor center.
+            v0 : ~astropy.units.Quantity
+                Initial velocity vector.
+            tof : float
+                Time of flight (s).
+        2. Classical
+            k: float
+                Standard Gravitational parameter.
+            p: float
+                Semi-latus rectum of parameter (km)
+            ecc: float
+                Eccentricity
+            inc:
+                Inclination (rad)
+            raan: float
+                Right ascension of the ascending node (rad)
+            argp: float
+                Argument of Perigee (rad)
+            nu: float
+                True anomaly
+            tof: float
+                Time of flight (s).
 
     Note
     ----
@@ -326,8 +345,28 @@ def farnocchia(k, r0, v0, tof):
 
     """
 
-    # get the initial true anomaly and orbit parameters that are constant over time
-    p, ecc, inc, raan, argp, nu0 = rv2coe(k, r0, v0)
-    nu = farnocchia_coe(k, p, ecc, inc, raan, argp, nu0, tof)
+    if len(elements) == 4: # Arguments are cartesian
+        # Get the initial true anomaly and orbit parameters that are constant over time
+        k = elements[0]
+        r0 = elements[1]
+        v0 = elements[2]
+        tof = elements[-1]
 
-    return coe2rv(k, p, ecc, inc, raan, argp, nu)
+        p, ecc, inc, raan, argp, nu0 = rv2coe(k, r0, v0)
+        nu = farnocchia_coe(k, p, ecc, inc, raan, argp, nu0, tof)
+        return coe2rv(k, p, ecc, inc, raan, argp, nu)
+
+    elif len(elements) == 8: # Arguments are classical
+        #k, p, ecc, inc, raan, argp, nu, tof = elements # TUPLE UNPACK FOR HETEROGENOUS TUPLE DOESN'T WORK IN NUMBA
+        # elems = (k, p, ecc, inc, raan, argp, nu, tof)
+        k = elems[0]
+        p = elems[1]
+        ecc = elems[2]
+        inc = elems[3]
+        raan = elems[4]
+        argp = elems[5]
+        nu = elems[6]
+        tof = elems[-1]
+
+        nu = farnocchia_coe(k, p, ecc, inc, raan, argp, nu, tof)
+        return coe2rv(k, p, ecc, inc, raan, argp, nu)

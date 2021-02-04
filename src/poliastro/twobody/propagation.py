@@ -118,19 +118,31 @@ def cowell(k, r, v, tofs, rtol=1e-11, *, events=None, f=func_twobody):
     return rrs * u.km, vvs * u.km / u.s
 
 
-def farnocchia(k, r, v, tofs, **kwargs):
+def farnocchia(*oelements, **kwargs): # Initially: k, r, v, tofs, **kwargs
     """Propagates orbit.
 
     Parameters
     ----------
-    k : ~astropy.units.Quantity
-        Standard gravitational parameter of the attractor.
-    r : ~astropy.units.Quantity
-        Position vector.
-    v : ~astropy.units.Quantity
-        Velocity vector.
-    tofs : ~astropy.units.Quantity
-        Array of times to propagate.
+    1. Cartesian
+        k : ~astropy.units.Quantity
+            Standard gravitational parameter of the attractor.
+        r : ~astropy.units.Quantity
+            Position vector.
+        v : ~astropy.units.Quantity
+            Velocity vector.
+        tofs : ~astropy.units.Quantity
+            Array of times to propagate.
+    2. Classical
+        k: float
+            Standard Gravitational parameter.
+        p:
+        ecc:
+        inc:
+        raan:
+        argp:
+        nu:
+        tofs: float
+            Time of flight (s).
 
     Returns
     -------
@@ -140,12 +152,25 @@ def farnocchia(k, r, v, tofs, **kwargs):
         Propagated velocity vectors.
 
     """
-    k = k.to(u.km ** 3 / u.s ** 2).value
-    r0 = r.to(u.km).value
-    v0 = v.to(u.km / u.s).value
-    tofs = tofs.to(u.s).value
 
-    results = [farnocchia_fast(k, r0, v0, tof) for tof in tofs]
+    #if sorted(oelements) == sorted(k, r, v, tofs): # Arguments are cartesian
+    if len(oelements) == 4:
+        k, r, v, tofs = oelements
+        k = k.to(u.km ** 3 / u.s ** 2).value
+        r0 = r.to(u.km).value
+        v0 = v.to(u.km / u.s).value
+        tofs = tofs.to(u.s).value
+        elems = (k, r0, v0, tofs)
+        results = [farnocchia_fast(k, r0, v0, tof) for tof in tofs]
+    #elif sorted(elements) == sorted(k, p, ecc, inc, raan, argp, nu, tofs): # Arguments are classical
+    if len(oelements) == 8:
+        k, p, ecc, inc, raan, argp, nu, tofs = oelements
+        k = k.to(u.km ** 3 / u.s ** 2).value
+        tofs = tofs.to(u.s).value
+        elems = (k, p, ecc, inc, raan, argp, nu, tofs) # TODO: Reduce the above two lines to a single line
+        results = [farnocchia_fast(k, p, ecc, inc, raan, argp, nu, tof) for tof in tofs]
+
+    # results = [farnocchia_fast(*elems) for tof in tofs]
     # TODO: Rewrite to avoid iterating twice
     return (
         [result[0] for result in results] * u.km,
@@ -427,7 +452,7 @@ def danby(k, r, v, tofs, rtol=1e-8):
     )
 
 
-def propagate(orbit, time_of_flight, *, method=farnocchia, rtol=1e-10, **kwargs):
+def propagate(orbit, time_of_flight, *, method=farnocchia, elems_type="cartesian", rtol=1e-10, **kwargs):
     """Propagate an orbit some time and return the result.
 
     Parameters
@@ -438,6 +463,8 @@ def propagate(orbit, time_of_flight, *, method=farnocchia, rtol=1e-10, **kwargs)
         Time of propagation.
     method : callable, optional
         Propagation method, default to farnocchia.
+    elems_type: str, optional
+        Type of orbital elements to use for propagation, default to "cartesian"
     rtol : float, optional
         Relative tolerance, default to 1e-10.
 
@@ -464,14 +491,29 @@ def propagate(orbit, time_of_flight, *, method=farnocchia, rtol=1e-10, **kwargs)
     else:
         pass
 
-    rr, vv = method(
-        orbit.attractor.k,
-        orbit.r,
-        orbit.v,
-        time_of_flight.reshape(-1).to(u.s),
-        rtol=rtol,
-        **kwargs
-    )
+    if elems_type == "classical":
+        _, ecc, inc, raan, argp, nu = orbit.classical()
+        rr, vv = method(
+            orbit.attractor.k,
+            orbit.p,
+            ecc,
+            inc,
+            raan,
+            argp,
+            nu,
+            time_of_flight.reshape(-1).to(u.s),
+            rtol=rtol,
+            **kwargs
+        )
+    else:
+        rr, vv = method(
+            orbit.attractor.k,
+            orbit.r,
+            orbit.v,
+            time_of_flight.reshape(-1).to(u.s),
+            rtol=rtol,
+            **kwargs
+        )
 
     # TODO: Turn these into unit tests
     assert rr.ndim == 2

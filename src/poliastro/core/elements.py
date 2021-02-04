@@ -255,7 +255,7 @@ def rv2coe(k, r, v, tol=1e-8):
     inc: float
         Inclination (rad)
     raan: float
-        Right ascension of the ascending nod (rad)
+        Right ascension of the ascending node (rad)
     argp: float
         Argument of Perigee (rad)
     nu: float

@@ -68,6 +68,30 @@ def test_elliptic_near_parabolic(ecc, propagator):
     assert_quantity_allclose(ss_propagator.v, ss_cowell.v)
 
 
+PROPAGATORS = [
+    farnocchia,
+    mikkola,
+    markley,
+    pimienta,
+    gooding,
+    danby,
+]
+@pytest.mark.parametrize("ecc", [0.9, 0.99, 0.999, 0.9999, 0.99999])
+@pytest.mark.parametrize("propagator", PROPAGATORS)
+def test_elliptic_near_parabolic_classical(ecc, propagator):
+    _a = 0.0 * u.rad
+    tof = 1.0 * u.min
+    ss0 = Orbit.from_classical(
+        Earth, 10000 * u.km, ecc * u.one, _a, _a, _a, 1.0 * u.rad
+    )
+
+    ss_cowell = ss0.propagate(tof, method=cowell)
+    ss_propagator = ss0.propagate(tof, method=propagator, elems_type="classical")
+
+    assert_quantity_allclose(ss_propagator.r, ss_cowell.r)
+    assert_quantity_allclose(ss_propagator.v, ss_cowell.v)
+
+
 @pytest.mark.parametrize("ecc", [1.0001, 1.001, 1.01, 1.1])
 @pytest.mark.parametrize("propagator", HYPERBOLIC_PROPAGATORS)
 def test_hyperbolic_near_parabolic(ecc, propagator):
@@ -113,6 +137,24 @@ def test_propagation(propagator):
     ss0 = Orbit.from_vectors(Earth, r0, v0)
     tof = 40 * u.min
     ss1 = ss0.propagate(tof, method=propagator)
+
+    r, v = ss1.rv()
+
+    assert_quantity_allclose(r, expected_r, rtol=1e-5)
+    assert_quantity_allclose(v, expected_v, rtol=1e-4)
+
+
+@pytest.mark.parametrize("propagator", PROPAGATORS)
+def test_propagation(propagator):
+    # Data from Vallado, example 2.4
+    r0 = [1131.340, -2282.343, 6672.423] * u.km
+    v0 = [-5.64305, 4.30333, 2.42879] * u.km / u.s
+    expected_r = [-4219.7527, 4363.0292, -3958.7666] * u.km
+    expected_v = [3.689866, -1.916735, -6.112511] * u.km / u.s
+
+    ss0 = Orbit.from_vectors(Earth, r0, v0)
+    tof = 40 * u.min
+    ss1 = ss0.propagate(tof, method=propagator, elems_type="classical")
 
     r, v = ss1.rv()
 
@@ -367,24 +409,6 @@ def test_long_propagations_vallado_agrees_farnocchia():
 
     r_mm, v_mm = halleys.propagate(tof, method=farnocchia).rv()
     r_k, v_k = halleys.propagate(tof, method=vallado).rv()
-    assert_quantity_allclose(r_mm, r_k)
-    assert_quantity_allclose(v_mm, v_k)
-
-
-@pytest.mark.filterwarnings("ignore::erfa.core.ErfaWarning")
-def test_long_propagations_vallado_agrees_farnocchia_classical():
-    tof = 100 * u.year
-    r_mm, v_mm = iss.propagate(tof, method=farnocchia, elems_type="classical").rv()
-    r_k, v_k = iss.propagate(tof, method=vallado, elems_type="classical").rv()
-    assert_quantity_allclose(r_mm, r_k)
-    assert_quantity_allclose(v_mm, v_k)
-
-    r_halleys = [-9018878.63569932, -94116054.79839276, 22619058.69943215]  # km
-    v_halleys = [-49.95092305, -12.94843055, -4.29251577]  # km/s
-    halleys = Orbit.from_vectors(Sun, r_halleys * u.km, v_halleys * u.km / u.s)
-
-    r_mm, v_mm = halleys.propagate(tof, method=farnocchia, elems_type="classical").rv()
-    r_k, v_k = halleys.propagate(tof, method=vallado, elems_type="classical").rv()
     assert_quantity_allclose(r_mm, r_k)
     assert_quantity_allclose(v_mm, v_k)
 

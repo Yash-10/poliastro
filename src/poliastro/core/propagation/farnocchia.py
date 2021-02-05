@@ -347,26 +347,27 @@ def farnocchia(*elements): # Initially: k, r0, v0, tof
 
     if len(elements) == 4: # Arguments are cartesian
         # Get the initial true anomaly and orbit parameters that are constant over time
-        k = elements[0]
-        r0 = elements[1]
-        v0 = elements[2]
-        tof = elements[-1]
+        k, r0, v0, tof = elements
+        # k = elements[0]
+        # r0 = elements[1]
+        # v0 = elements[2]
+        # tof = elements[-1]
 
         p, ecc, inc, raan, argp, nu0 = rv2coe(k, r0, v0)
         nu = farnocchia_coe(k, p, ecc, inc, raan, argp, nu0, tof)
         return coe2rv(k, p, ecc, inc, raan, argp, nu)
 
     elif len(elements) == 8: # Arguments are classical
-        #k, p, ecc, inc, raan, argp, nu, tof = elements # TUPLE UNPACK FOR HETEROGENOUS TUPLE DOESN'T WORK IN NUMBA
+        k, p, ecc, inc, raan, argp, nu, tof = elements # TUPLE UNPACK FOR HETEROGENOUS TUPLE DOESN'T WORK IN NUMBA
         # elems = (k, p, ecc, inc, raan, argp, nu, tof)
-        k = elems[0]
-        p = elems[1]
-        ecc = elems[2]
-        inc = elems[3]
-        raan = elems[4]
-        argp = elems[5]
-        nu = elems[6]
-        tof = elems[-1]
+        # k = elems[0]
+        # p = elems[1]
+        # ecc = elems[2]
+        # inc = elems[3]
+        # raan = elems[4]
+        # argp = elems[5]
+        # nu = elems[6]
+        # tof = elems[-1]
 
         nu = farnocchia_coe(k, p, ecc, inc, raan, argp, nu, tof)
         return coe2rv(k, p, ecc, inc, raan, argp, nu)

@@ -153,21 +153,17 @@ def farnocchia(*oelements, **kwargs): # Initially: k, r, v, tofs, **kwargs
 
     """
 
-    #if sorted(oelements) == sorted(k, r, v, tofs): # Arguments are cartesian
     if len(oelements) == 4:
         k, r, v, tofs = oelements
         k = k.to(u.km ** 3 / u.s ** 2).value
         r0 = r.to(u.km).value
         v0 = v.to(u.km / u.s).value
         tofs = tofs.to(u.s).value
-        elems = (k, r0, v0, tofs)
         results = [farnocchia_fast(k, r0, v0, tof) for tof in tofs]
-    #elif sorted(elements) == sorted(k, p, ecc, inc, raan, argp, nu, tofs): # Arguments are classical
-    if len(oelements) == 8:
+    elif len(oelements) == 8:
         k, p, ecc, inc, raan, argp, nu, tofs = oelements
         k = k.to(u.km ** 3 / u.s ** 2).value
         tofs = tofs.to(u.s).value
-        elems = (k, p, ecc, inc, raan, argp, nu, tofs) # TODO: Reduce the above two lines to a single line
         results = [farnocchia_fast(k, p, ecc, inc, raan, argp, nu, tof) for tof in tofs]
 
     # results = [farnocchia_fast(*elems) for tof in tofs]
@@ -207,7 +203,7 @@ def vallado(k, r, v, tofs, numiter=350, **kwargs):
         If the algorithm didn't converge.
 
     Note
-    -----
+    ----
     This algorithm is based on Vallado implementation, and does basic Newton
     iteration on the Kepler equation written using universal variables. Battin
     claims his algorithm uses the same amount of memory but is between 40 %
@@ -240,22 +236,41 @@ def _kepler(k, r0, v0, tof, *, numiter):
     return r, v
 
 
-def mikkola(k, r, v, tofs, rtol=None):
+def mikkola(*oelements, **kwargs): # k, r, v, tofs, rtol=None
     """Solves Kepler Equation by a cubic approximation. This method is valid
     no mater the orbit's nature.
 
     Parameters
     ----------
-    k : ~astropy.units.Quantity
-        Standard gravitational parameter of the attractor.
-    r : ~astropy.units.Quantity
-        Position vector.
-    v : ~astropy.units.Quantity
-        Velocity vector.
-    tofs : ~astropy.units.Quantity
-        Array of times to propagate.
     rtol: float
         This method does not require of tolerance since it is non iterative.
+    Can be either Cartesian or Classical:
+        1. Cartesian
+            k : ~astropy.units.Quantity
+                Standard gravitational parameter of the attractor.
+            r : ~astropy.units.Quantity
+                Position vector.
+            v : ~astropy.units.Quantity
+                Velocity vector.
+            tofs : ~astropy.units.Quantity
+                Array of times to propagate.
+        2. Classical
+            k: float
+                Standard Gravitational parameter.
+            p: float
+                Semi-latus rectum of parameter (km)
+            ecc: float
+                Eccentricity
+            inc:
+                Inclination (rad)
+            raan: float
+                Right ascension of the ascending node (rad)
+            argp: float
+                Argument of Perigee (rad)
+            nu: float
+                True anomaly
+            tof: float
+                Time of flight (s).
 
     Returns
     -------
@@ -267,36 +282,63 @@ def mikkola(k, r, v, tofs, rtol=None):
     ----
     This method was derived by Seppo Mikola in his paper *A Cubic Approximation
     For Kepler's Equation* with DOI: https://doi.org/10.1007/BF01235850
+    This method does not require of tolerance since it is non iterative.
     """
 
-    k = k.to(u.m ** 3 / u.s ** 2).value
-    r0 = r.to(u.m).value
-    v0 = v.to(u.m / u.s).value
-    tofs = tofs.to(u.s).value
+    if len(oelements) == 4:
+        k, r, v, tofs = oelements
+        k = k.to(u.m ** 3 / u.s ** 2).value
+        r0 = r.to(u.m).value
+        v0 = v.to(u.m / u.s).value
+        tofs = tofs.to(u.s).value
+        results = [mikkola_fast(k, r0, v0, tof) for tof in tofs]
+    elif len(oelements) == 8:
+        k, p, ecc, inc, raan, argp, nu, tofs = oelements
+        k = k.to(u.m ** 3 / u.s ** 2).value
+        tofs = tofs.to(u.s).value
+        results = [mikkola_fast(k, p, ecc, inc, raan, argp, nu, tof) for tof in tofs]
 
-    results = [mikkola_fast(k, r0, v0, tof) for tof in tofs]
     return (
         [result[0] for result in results] * u.m,
         [result[1] for result in results] * u.m / u.s,
     )
 
 
-def markley(k, r, v, tofs, rtol=None):
+def markley(*oelements, **kwargs): # k, r, v, tofs, rtol=None
     """Elliptical Kepler Equation solver based on a fifth-order
     refinement of the solution of a cubic equation.
 
     Parameters
     ----------
-    k : ~astropy.units.Quantity
-        Standard gravitational parameter of the attractor.
-    r : ~astropy.units.Quantity
-        Position vector.
-    v : ~astropy.units.Quantity
-        Velocity vector.
-    tofs : ~astropy.units.Quantity
-        Array of times to propagate.
     rtol: float
         This method does not require of tolerance since it is non iterative.
+    Can be either Cartesian or Classical:
+        1. Cartesian
+            k : ~astropy.units.Quantity
+                Standard gravitational parameter of the attractor.
+            r : ~astropy.units.Quantity
+                Position vector.
+            v : ~astropy.units.Quantity
+                Velocity vector.
+            tofs : ~astropy.units.Quantity
+                Array of times to propagate.
+        2. Classical
+            k: float
+                Standard Gravitational parameter.
+            p: float
+                Semi-latus rectum of parameter (km)
+            ecc: float
+                Eccentricity
+            inc:
+                Inclination (rad)
+            raan: float
+                Right ascension of the ascending node (rad)
+            argp: float
+                Argument of Perigee (rad)
+            nu: float
+                True anomaly
+            tof: float
+                Time of flight (s).
 
     Returns
     -------
@@ -309,37 +351,64 @@ def markley(k, r, v, tofs, rtol=None):
     ----
     This method was originally presented by Markley in his paper *Kepler Equation Solver*
     with DOI: https://doi.org/10.1007/BF00691917
+    This method does not require of tolerance since it is non iterative.
     """
 
-    k = k.to(u.m ** 3 / u.s ** 2).value
-    r0 = r.to(u.m).value
-    v0 = v.to(u.m / u.s).value
-    tofs = tofs.to(u.s).value
+    if len(oelements) == 4:
+        k, r, v, tofs = oelements
+        k = k.to(u.m ** 3 / u.s ** 2).value
+        r0 = r.to(u.m).value
+        v0 = v.to(u.m / u.s).value
+        tofs = tofs.to(u.s).value
+        results = [markley_fast(k, r0, v0, tof) for tof in tofs]
+    elif len(oelements) == 8:
+        k, p, ecc, inc, raan, argp, nu, tofs = oelements
+        k = k.to(u.m ** 3 / u.s ** 2).value
+        tofs = tofs.to(u.s).value
+        results = [markley_fast(k, p, ecc, inc, raan, argp, nu, tof) for tof in tofs]
 
-    results = [markley_fast(k, r0, v0, tof) for tof in tofs]
     return (
         [result[0] for result in results] * u.m,
         [result[1] for result in results] * u.m / u.s,
     )
 
 
-def pimienta(k, r, v, tofs, rtol=None):
+def pimienta(*oelements, **kwargs): # k, r, v, tofs, rtol=None
     """Kepler solver for both elliptic and parabolic orbits based on a 15th
     order polynomial with accuracies around 10e-5 for elliptic case and 10e-13
     in the hyperbolic regime.
 
     Parameters
     ----------
-    k : ~astropy.units.Quantity
-        Standard gravitational parameter of the attractor.
-    r : ~astropy.units.Quantity
-        Position vector.
-    v : ~astropy.units.Quantity
-        Velocity vector.
-    tofs : ~astropy.units.Quantity
-        Array of times to propagate.
     rtol: float
         This method does not require of tolerance since it is non iterative.
+    Can be either Cartesian or Classical:
+        1. Cartesian
+            k : ~astropy.units.Quantity
+                Standard gravitational parameter of the attractor.
+            r : ~astropy.units.Quantity
+                Position vector.
+            v : ~astropy.units.Quantity
+                Velocity vector.
+            tofs : ~astropy.units.Quantity
+                Array of times to propagate.
+        2. Classical
+            k: float
+                Standard Gravitational parameter.
+            p: float
+                Semi-latus rectum of parameter (km)
+            ecc: float
+                Eccentricity
+            inc:
+                Inclination (rad)
+            raan: float
+                Right ascension of the ascending node (rad)
+            argp: float
+                Argument of Perigee (rad)
+            nu: float
+                True anomaly
+            tof: float
+                Time of flight (s).
 
     Returns
     -------
@@ -354,36 +423,61 @@ def pimienta(k, r, v, tofs, rtol=None):
     their paper *Accurate Kepler Equation solver without trascendental function
     evaluations*. Original paper is on Buffalo's UBIR repository: http://hdl.handle.net/10477/50522
     """
+    if len(oelements) == 4:
+        k, r, v, tofs = oelements
+        k = k.to(u.m ** 3 / u.s ** 2).value
+        r0 = r.to(u.m).value
+        v0 = v.to(u.m / u.s).value
+        tofs = tofs.to(u.s).value
+        results = [pimienta_fast(k, r0, v0, tof) for tof in tofs]
+    elif len(oelements) == 8:
+        k, p, ecc, inc, raan, argp, nu, tofs = oelements
+        k = k.to(u.m ** 3 / u.s ** 2).value
+        tofs = tofs.to(u.s).value
+        results = [pimienta_fast(k, p, ecc, inc, raan, argp, nu, tof) for tof in tofs]
 
-    k = k.to(u.m ** 3 / u.s ** 2).value
-    r0 = r.to(u.m).value
-    v0 = v.to(u.m / u.s).value
-    tofs = tofs.to(u.s).value
-
-    results = [pimienta_fast(k, r0, v0, tof) for tof in tofs]
     return (
         [result[0] for result in results] * u.m,
         [result[1] for result in results] * u.m / u.s,
     )
 
 
-def gooding(k, r, v, tofs, numiter=150, rtol=1e-8):
+def gooding(*oelements, numiter=150, rtol=1e-8): # k, r, v, tofs, numiter=150, rtol=1e-8
     """Solves the Elliptic Kepler Equation with a cubic convergence and
     accuracy better than 10e-12 rad is normally achieved. It is not valid for
     eccentricities equal or greater than 1.0.
 
     Parameters
     ----------
-    k : ~astropy.units.Quantity
-        Standard gravitational parameter of the attractor.
-    r : ~astropy.units.Quantity
-        Position vector.
-    v : ~astropy.units.Quantity
-        Velocity vector.
-    tofs : ~astropy.units.Quantity
-        Array of times to propagate.
     rtol: float
-        This method does not require of tolerance since it is non iterative.
+        This method does not require of tolerance since it is non iterative, default to 1e-8
+    Can be either Cartesian or Classical:
+        1. Cartesian
+            k : ~astropy.units.Quantity
+                Standard gravitational parameter of the attractor.
+            r : ~astropy.units.Quantity
+                Position vector.
+            v : ~astropy.units.Quantity
+                Velocity vector.
+            tofs : ~astropy.units.Quantity
+                Array of times to propagate.
+        2. Classical
+            k: float
+                Standard Gravitational parameter.
+            p: float
+                Semi-latus rectum of parameter (km)
+            ecc: float
+                Eccentricity
+            inc:
+                Inclination (rad)
+            raan: float
+                Right ascension of the ascending node (rad)
+            argp: float
+                Argument of Perigee (rad)
+            nu: float
+                True anomaly
+            tof: float
+                Time of flight (s).
 
     Returns
     -------
@@ -398,34 +492,60 @@ def gooding(k, r, v, tofs, numiter=150, rtol=1e-8):
     DOI: https://doi.org/10.1007/BF01235540
     """
 
-    k = k.to(u.m ** 3 / u.s ** 2).value
-    r0 = r.to(u.m).value
-    v0 = v.to(u.m / u.s).value
-    tofs = tofs.to(u.s).value
+    if len(oelements) == 4:
+        k, r, v, tofs = oelements
+        k = k.to(u.m ** 3 / u.s ** 2).value
+        r0 = r.to(u.m).value
+        v0 = v.to(u.m / u.s).value
+        tofs = tofs.to(u.s).value
+        results = [gooding_fast(k, r0, v0, tof, numiter, rtol) for tof in tofs]
+    elif len(oelements) == 8:
+        k, p, ecc, inc, raan, argp, nu, tofs = oelements
+        k = k.to(u.m ** 3 / u.s ** 2).value
+        tofs = tofs.to(u.s).value
+        results = [gooding_fast(k, p, ecc, inc, raan, argp, nu, tof, numiter, rtol) for tof in tofs]
 
-    results = [gooding_fast(k, r0, v0, tof, numiter=numiter, rtol=rtol) for tof in tofs]
     return (
         [result[0] for result in results] * u.m,
         [result[1] for result in results] * u.m / u.s,
     )
 
 
-def danby(k, r, v, tofs, rtol=1e-8):
+def danby(*oelements, rtol=1e-8, numiter=20): # k, r, v, tofs, rtol=1e-8
     """Kepler solver for both elliptic and parabolic orbits based on Danby's
     algorithm.
 
     Parameters
     ----------
-    k : ~astropy.units.Quantity
-        Standard gravitational parameter of the attractor.
-    r : ~astropy.units.Quantity
-        Position vector.
-    v : ~astropy.units.Quantity
-        Velocity vector.
-    tofs : ~astropy.units.Quantity
-        Array of times to propagate.
     rtol: float
-        Relative error for accuracy of the method.
+        This method does not require of tolerance since it is non iterative.
+    Can be either Cartesian or Classical:
+        1. Cartesian
+            k : ~astropy.units.Quantity
+                Standard gravitational parameter of the attractor.
+            r : ~astropy.units.Quantity
+                Position vector.
+            v : ~astropy.units.Quantity
+                Velocity vector.
+            tofs : ~astropy.units.Quantity
+                Array of times to propagate.
+        2. Classical
+            k: float
+                Standard Gravitational parameter.
+            p: float
+                Semi-latus rectum of parameter (km)
+            ecc: float
+                Eccentricity
+            inc:
+                Inclination (rad)
+            raan: float
+                Right ascension of the ascending node (rad)
+            argp: float
+                Argument of Perigee (rad)
+            nu: float
+                True anomaly
+            tof: float
+                Time of flight (s).
 
     Returns
     -------
@@ -439,13 +559,19 @@ def danby(k, r, v, tofs, rtol=1e-8):
     This algorithm was developed by Danby in his paper *The solution of Kepler
     Equation* with DOI: https://doi.org/10.1007/BF01686811
     """
+    if len(oelements) == 4:
+        k, r, v, tofs = oelements
+        k = k.to(u.m ** 3 / u.s ** 2).value
+        r0 = r.to(u.m).value
+        v0 = v.to(u.m / u.s).value
+        tofs = tofs.to(u.s).value
+        results = [danby_fast(k, r0, v0, tof, numiter, rtol) for tof in tofs]
+    elif len(oelements) == 8:
+        k, p, ecc, inc, raan, argp, nu, tofs = oelements
+        k = k.to(u.m ** 3 / u.s ** 2).value
+        tofs = tofs.to(u.s).value
+        results = [danby_fast(k, p, ecc, inc, raan, argp, nu, tof, numiter, rtol) for tof in tofs]
 
-    k = k.to(u.m ** 3 / u.s ** 2).value
-    r0 = r.to(u.m).value
-    v0 = v.to(u.m / u.s).value
-    tofs = tofs.to(u.s).value
-
-    results = [danby_fast(k, r0, v0, tof) for tof in tofs]
     return (
         [result[0] for result in results] * u.m,
         [result[1] for result in results] * u.m / u.s,

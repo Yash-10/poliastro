@@ -275,21 +275,38 @@ def mikkola_coe(k, p, ecc, inc, raan, argp, nu, tof):
 
 
 @jit
-def mikkola(k, r0, v0, tof, rtol=None):
+def mikkola(*elements): # k, r0, v0, tof
     """Raw algorithm for Mikkola's Kepler solver.
 
     Parameters
     ----------
-    k : ~astropy.units.Quantity
-        Standard gravitational parameter of the attractor.
-    r : ~astropy.units.Quantity
-        Position vector.
-    v : ~astropy.units.Quantity
-        Velocity vector.
-    tofs : ~astropy.units.Quantity
-        Array of times to propagate.
-    rtol: float
-        This method does not require of tolerance since it is non iterative.
+    Can be either Cartesian or Classical:
+        1. Cartesian
+            k : ~astropy.units.Quantity
+                Standard Gravitational parameter.
+            r0 : ~astropy.units.Quantity
+                Position vector.
+            v0 : ~astropy.units.Quantity
+                Velocity vector.
+            tof : ~float
+                Time of flight (s).
+        2. Classical
+            k: float
+                Standard Gravitational parameter.
+            p: float
+                Semi-latus rectum of parameter (km)
+            ecc: float
+                Eccentricity
+            inc:
+                Inclination (rad)
+            raan: float
+                Right ascension of the ascending node (rad)
+            argp: float
+                Argument of Perigee (rad)
+            nu: float
+                True anomaly
+            tof: float
+                Time of flight (s).
 
     Returns
     -------
@@ -300,13 +317,19 @@ def mikkola(k, r0, v0, tof, rtol=None):
     Note
     ----
     Original paper: https://doi.org/10.1007/BF01235850
+    This method does not require of tolerance since it is non iterative.
     """
 
     # Solving for the classical elements
-    p, ecc, inc, raan, argp, nu = rv2coe(k, r0, v0)
-    nu = mikkola_coe(k, p, ecc, inc, raan, argp, nu, tof)
-
-    return coe2rv(k, p, ecc, inc, raan, argp, nu)
+    if len(elements) == 4:
+        k, r0, v0, tof = elements
+        p, ecc, inc, raan, argp, nu = rv2coe(k, r0, v0)
+        nu = mikkola_coe(k, p, ecc, inc, raan, argp, nu, tof)
+        return coe2rv(k, p, ecc, inc, raan, argp, nu)
+    elif len(elements) == 8:
+        k, p, ecc, inc, raan, argp, nu, tof = elements
+        nu = mikkola_coe(k, p, ecc, inc, raan, argp, nu, tof)
+        return coe2rv(k, p, ecc, inc, raan, argp, nu)
 
 
 @jit
@@ -359,20 +382,39 @@ def markley_coe(k, p, ecc, inc, raan, argp, nu, tof):
 
 
 @jit
-def markley(k, r0, v0, tof):
+def markley(*elements): # k, r0, v0, tof
     """Solves the kepler problem by a non iterative method. Relative error is
-    around 1e-18, only limited by machine double-precission errors.
+    around 1e-18, only limited by machine double-precision errors.
 
     Parameters
     ----------
-    k : float
-        Standar Gravitational parameter
-    r0 : array
-        Initial position vector wrt attractor center.
-    v0 : array
-        Initial velocity vector.
-    tof : float
-        Time of flight.
+    Can be either Cartesian or Classical:
+        1. Cartesian
+            k : ~astropy.units.Quantity
+                Standard Gravitational parameter
+            r0 : ~astropy.units.Quantity
+                Position vector.
+            v0 : ~astropy.units.Quantity
+                Velocity vector.
+            tof : float
+                Time of flight (s).
+        2. Classical
+            k: float
+                Standard Gravitational parameter.
+            p: float
+                Semi-latus rectum of parameter (km)
+            ecc: float
+                Eccentricity
+            inc:
+                Inclination (rad)
+            raan: float
+                Right ascension of the ascending node (rad)
+            argp: float
+                Argument of Perigee (rad)
+            nu: float
+                True anomaly
+            tof: float
+                Time of flight (s).
 
     Returns
     -------
@@ -386,11 +428,17 @@ def markley(k, r0, v0, tof):
     The following algorithm was taken from http://dx.doi.org/10.1007/BF00691917.
 
     """
-    # Solve first for eccentricity and mean anomaly
-    p, ecc, inc, raan, argp, nu = rv2coe(k, r0, v0)
-    nu = markley_coe(k, p, ecc, inc, raan, argp, nu, tof)
 
-    return coe2rv(k, p, ecc, inc, raan, argp, nu)
+    # Solve first for eccentricity and mean anomaly
+    if len(elements) == 4:
+        k, r0, v0, tof = elements
+        p, ecc, inc, raan, argp, nu = rv2coe(k, r0, v0)
+        nu = markley_coe(k, p, ecc, inc, raan, argp, nu, tof)
+        return coe2rv(k, p, ecc, inc, raan, argp, nu)
+    elif len(elements) == 8:
+        k, p, ecc, inc, raan, argp, nu, tof = elements
+        nu = markley_coe(k, p, ecc, inc, raan, argp, nu, tof)
+        return coe2rv(k, p, ecc, inc, raan, argp, nu)
 
 
 @jit
@@ -726,20 +774,39 @@ def pimienta_coe(k, p, ecc, inc, raan, argp, nu, tof):
 
 
 @jit
-def pimienta(k, r0, v0, tof):
+def pimienta(*elements): # k, r0, v0, tof
     """Raw algorithm for Adonis' Pimienta and John L. Crassidis 15th order
     polynomial Kepler solver.
 
     Parameters
     ----------
-    k : float
-        Standar Gravitational parameter
-    r0 : array
-        Initial position vector wrt attractor center.
-    v0 : array
-        Initial velocity vector.
-    tof : float
-        Time of flight.
+    Can be either Cartesian or Classical:
+        1. Cartesian
+            k : ~astropy.units.Quantity
+                Standard Gravitational parameter
+            r0 : ~astropy.units.Quantity
+                Position vector.
+            v0 : ~astropy.units.Quantity
+                Velocity vector.
+            tof : float
+                Time of flight (s).
+        2. Classical
+            k: float
+                Standard Gravitational parameter.
+            p: float
+                Semi-latus rectum of parameter (km)
+            ecc: float
+                Eccentricity
+            inc:
+                Inclination (rad)
+            raan: float
+                Right ascension of the ascending node (rad)
+            argp: float
+                Argument of Perigee (rad)
+            nu: float
+                True anomaly
+            tof: float
+                Time of flight (s).
 
     Returns
     -------
@@ -756,10 +823,15 @@ def pimienta(k, r0, v0, tof):
     # TODO: implement hyperbolic case
 
     # Solve first for eccentricity and mean anomaly
-    p, ecc, inc, raan, argp, nu = rv2coe(k, r0, v0)
-    nu = pimienta_coe(k, p, ecc, inc, raan, argp, nu, tof)
-
-    return coe2rv(k, p, ecc, inc, raan, argp, nu)
+    if len(elements) == 4:
+        k, r0, v0, tof = elements
+        p, ecc, inc, raan, argp, nu = rv2coe(k, r0, v0)
+        nu = pimienta_coe(k, p, ecc, inc, raan, argp, nu, tof)
+        return coe2rv(k, p, ecc, inc, raan, argp, nu)
+    elif len(elements) == 8:
+        k, p, ecc, inc, raan, argp, nu, tof = elements
+        nu = pimienta_coe(k, p, ecc, inc, raan, argp, nu, tof)
+        return coe2rv(k, p, ecc, inc, raan, argp, nu)
 
 
 @jit
@@ -795,29 +867,50 @@ def gooding_coe(k, p, ecc, inc, raan, argp, nu, tof, numiter=150, rtol=1e-8):
 
 
 @jit
-def gooding(k, r0, v0, tof, numiter=150, rtol=1e-8):
+def gooding(*elements): # NOTE: args like these are not supported in numba: *elements, numiter=150, rtol=1e-8
     """Solves the Elliptic Kepler Equation with a cubic convergence and
     accuracy better than 10e-12 rad is normally achieved. It is not valid for
     eccentricities equal or higher than 1.0.
 
     Parameters
     ----------
-    k : float
-        Standard gravitational parameter of the attractor.
-    r : 1x3 vector
-        Position vector.
-    v : 1x3 vector
-        Velocity vector.
-    tof : float
-        Time of flight.
+    numiter: int
+        Number of iterations
     rtol: float
         Relative error for accuracy of the method.
+    Can be either Cartesian or Classical:
+        1. Cartesian
+            k : float
+                Standard Gravitational parameter of the attractor
+            r0 : 1x3 vector
+                Position vector
+            v0 : 1x3 vector
+                Velocity vector.
+            tof : float
+                Time of flight.
+        2. Classical
+            k: float
+                Standard Gravitational parameter.
+            p: float
+                Semi-latus rectum of parameter (km)
+            ecc: float
+                Eccentricity
+            inc:
+                Inclination (rad)
+            raan: float
+                Right ascension of the ascending node (rad)
+            argp: float
+                Argument of Perigee (rad)
+            nu: float
+                True anomaly
+            tof: float
+                Time of flight (s).
 
     Returns
     -------
     rr : 1x3 vector
         Propagated position vectors.
-     vv : 1x3 vector
+    vv : 1x3 vector
 
     Note
     ----
@@ -825,10 +918,15 @@ def gooding(k, r0, v0, tof, numiter=150, rtol=1e-8):
     """
 
     # Solve first for eccentricity and mean anomaly
-    p, ecc, inc, raan, argp, nu = rv2coe(k, r0, v0)
-    nu = gooding_coe(k, p, ecc, inc, raan, argp, nu, tof, numiter, rtol)
-
-    return coe2rv(k, p, ecc, inc, raan, argp, nu)
+    if len(elements) == 6:
+        k, r0, v0, tof, numiter, rtol = elements
+        p, ecc, inc, raan, argp, nu = rv2coe(k, r0, v0)
+        nu = gooding_coe(k, p, ecc, inc, raan, argp, nu, tof, numiter, rtol)
+        return coe2rv(k, p, ecc, inc, raan, argp, nu)
+    elif len(elements) == 10:
+        k, p, ecc, inc, raan, argp, nu, tof, numiter, rtol = elements
+        nu = gooding_coe(k, p, ecc, inc, raan, argp, nu, tof, numiter, rtol)
+        return coe2rv(k, p, ecc, inc, raan, argp, nu)
 
 
 @jit
@@ -901,22 +999,43 @@ def danby_coe(k, p, ecc, inc, raan, argp, nu, tof, numiter=20, rtol=1e-8):
 
 
 @jit
-def danby(k, r0, v0, tof, numiter=20, rtol=1e-8):
+def danby(*elements): # k, r0, v0, tof, numiter=20, rtol=1e-8
     """Kepler solver for both elliptic and parabolic orbits based on Danby's
     algorithm.
 
     Parameters
     ----------
-    k : float
-        Standard gravitational parameter of the attractor.
-    r : 1x3 vector
-        Position vector.
-    v : 1x3 vector
-        Velocity vector.
-    tof : float
-        Time of flight.
     rtol: float
         Relative error for accuracy of the method.
+    numiter: int
+        Number of iterations
+    Can be either Cartesian or Classical:
+        1. Cartesian
+            k : float
+                Standard Gravitational parameter of the attractor
+            r0 : 1x3 vector
+                Position vector
+            v0 : 1x3 vector
+                Velocity vector.
+            tof : float
+                Time of flight.
+        2. Classical
+            k: float
+                Standard Gravitational parameter.
+            p: float
+                Semi-latus rectum of parameter (km)
+            ecc: float
+                Eccentricity
+            inc:
+                Inclination (rad)
+            raan: float
+                Right ascension of the ascending node (rad)
+            argp: float
+                Argument of Perigee (rad)
+            nu: float
+                True anomaly
+            tof: float
+                Time of flight (s).
 
     Returns
     -------
@@ -931,7 +1050,12 @@ def danby(k, r0, v0, tof, numiter=20, rtol=1e-8):
     """
 
     # Solve first for eccentricity and mean anomaly
-    p, ecc, inc, raan, argp, nu = rv2coe(k, r0, v0)
-    nu = danby_coe(k, p, ecc, inc, raan, argp, nu, tof, numiter, rtol)
-
-    return coe2rv(k, p, ecc, inc, raan, argp, nu)
+    if len(elements) == 6:
+        k, r0, v0, tof, numiter, rtol = elements
+        p, ecc, inc, raan, argp, nu = rv2coe(k, r0, v0)
+        nu = danby_coe(k, p, ecc, inc, raan, argp, nu, tof, numiter, rtol)
+        return coe2rv(k, p, ecc, inc, raan, argp, nu)
+    elif len(elements) == 10:
+        k, p, ecc, inc, raan, argp, nu, tof, numiter, rtol = elements
+        nu = danby_coe(k, p, ecc, inc, raan, argp, nu, tof, numiter, rtol)
+        return coe2rv(k, p, ecc, inc, raan, argp, nu)

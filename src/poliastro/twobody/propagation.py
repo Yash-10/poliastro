@@ -304,7 +304,7 @@ def mikkola(*oelements, **kwargs): # k, r, v, tofs, rtol=None
     )
 
 
-def markley(*oelements, **kwargs): # k, r, v, tofs, rtol=None
+def markley(*oelements, classical=False, rtol=None): # k, r, v, tofs, rtol=None
     """Elliptical Kepler Equation solver based on a fifth-order
     refinement of the solution of a cubic equation.
 
@@ -339,6 +339,8 @@ def markley(*oelements, **kwargs): # k, r, v, tofs, rtol=None
                 True anomaly
             tof: float
                 Time of flight (s).
+    classical: bool, optional
+        Type of orbital elements to use for propagation, set to False
 
     Returns
     -------
@@ -354,18 +356,19 @@ def markley(*oelements, **kwargs): # k, r, v, tofs, rtol=None
     This method does not require of tolerance since it is non iterative.
     """
 
-    if len(oelements) == 4:
+    if len(oelements) == 8:
+        classical = True
+        k, p, ecc, inc, raan, argp, nu, tofs = oelements
+        k = k.to(u.m ** 3 / u.s ** 2).value
+        tofs = tofs.to(u.s).value
+        results = [markley_fast(k, p, ecc, inc, raan, argp, nu, tof, classical=True) for tof in tofs]
+    elif len(oelements) == 4:
         k, r, v, tofs = oelements
         k = k.to(u.m ** 3 / u.s ** 2).value
         r0 = r.to(u.m).value
         v0 = v.to(u.m / u.s).value
         tofs = tofs.to(u.s).value
         results = [markley_fast(k, r0, v0, tof) for tof in tofs]
-    elif len(oelements) == 8:
-        k, p, ecc, inc, raan, argp, nu, tofs = oelements
-        k = k.to(u.m ** 3 / u.s ** 2).value
-        tofs = tofs.to(u.s).value
-        results = [markley_fast(k, p, ecc, inc, raan, argp, nu, tof) for tof in tofs]
 
     return (
         [result[0] for result in results] * u.m,
@@ -578,7 +581,7 @@ def danby(*oelements, rtol=1e-8, numiter=20): # k, r, v, tofs, rtol=1e-8
     )
 
 
-def propagate(orbit, time_of_flight, *, method=farnocchia, elems_type="cartesian", rtol=1e-10, **kwargs):
+def propagate(orbit, time_of_flight, *, classical=False, method=farnocchia, rtol=1e-10, **kwargs):
     """Propagate an orbit some time and return the result.
 
     Parameters
@@ -617,7 +620,7 @@ def propagate(orbit, time_of_flight, *, method=farnocchia, elems_type="cartesian
     else:
         pass
 
-    if elems_type == "classical":
+    if classical:
         _, ecc, inc, raan, argp, nu = orbit.classical()
         rr, vv = method(
             orbit.attractor.k,
@@ -628,6 +631,7 @@ def propagate(orbit, time_of_flight, *, method=farnocchia, elems_type="cartesian
             argp,
             nu,
             time_of_flight.reshape(-1).to(u.s),
+            classical=True, # TODO: Not need this line?? EDIT: NEEDED??
             rtol=rtol,
             **kwargs
         )

@@ -1237,7 +1237,7 @@ class Orbit:
     def __repr__(self):
         return self.__str__()
 
-    def propagate(self, value, method=farnocchia, elems_type="cartesian", rtol=1e-10, **kwargs):
+    def propagate(self, value, classical=False, method=farnocchia, rtol=1e-10, **kwargs):
         """Propagates an orbit a specified time.
 
         If value is true anomaly, propagate orbit to this anomaly and return the result.
@@ -1247,6 +1247,8 @@ class Orbit:
         ----------
         value : ~astropy.units.Quantity, ~astropy.time.Time, ~astropy.time.TimeDelta
             Scalar time to propagate.
+        classical: bool, optional
+            Type of orbital elements to use for propagation, set to False
         rtol : float, optional
             Relative tolerance for the propagation algorithm, default to 1e-10.
         method : function, optional
@@ -1268,7 +1270,7 @@ class Orbit:
             # Works for both Quantity and TimeDelta objects
             time_of_flight = time.TimeDelta(value)
 
-        cartesian = propagate(self, time_of_flight, method=method, elems_type=elems_type, rtol=rtol, **kwargs)
+        cartesian = propagate(self, time_of_flight, classical=classical, method=method, rtol=rtol, **kwargs)
         new_epoch = self.epoch + time_of_flight
 
         return self.from_vectors(

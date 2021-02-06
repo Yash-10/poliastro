@@ -381,8 +381,8 @@ def markley_coe(k, p, ecc, inc, raan, argp, nu, tof):
     return nu
 
 
-@jit
-def markley(*elements): # k, r0, v0, tof
+@jit(optional)
+def markley(*elements, classical=False): # ADD `classical=True` argument ?? # k, r0, v0, tof
     """Solves the kepler problem by a non iterative method. Relative error is
     around 1e-18, only limited by machine double-precision errors.
 
@@ -415,6 +415,8 @@ def markley(*elements): # k, r0, v0, tof
                 True anomaly
             tof: float
                 Time of flight (s).
+    classical: bool, optional
+        Type of orbital elements to use for propagation, default to False  # TODO: CHANGE THE DOCSTRING - EDIT: NO NEED NOW??
 
     Returns
     -------
@@ -428,15 +430,16 @@ def markley(*elements): # k, r0, v0, tof
     The following algorithm was taken from http://dx.doi.org/10.1007/BF00691917.
 
     """
-
+    # TODO: Add a value error if both conditions are not met
     # Solve first for eccentricity and mean anomaly
-    if len(elements) == 4:
-        k, r0, v0, tof = elements
-        p, ecc, inc, raan, argp, nu = rv2coe(k, r0, v0)
+    if len(elements) == 8: # TODO: Remove/Add (DECIDE THAT) `and classical` to ease the user else need to type classical=True -> not intelligent EDIT: DID I THNIK?
+        classical = True
+        k, p, ecc, inc, raan, argp, nu, tof = elements
         nu = markley_coe(k, p, ecc, inc, raan, argp, nu, tof)
         return coe2rv(k, p, ecc, inc, raan, argp, nu)
-    elif len(elements) == 8:
-        k, p, ecc, inc, raan, argp, nu, tof = elements
+    elif len(elements) == 4:
+        k, r0, v0, tof = elements
+        p, ecc, inc, raan, argp, nu = rv2coe(k, r0, v0)
         nu = markley_coe(k, p, ecc, inc, raan, argp, nu, tof)
         return coe2rv(k, p, ecc, inc, raan, argp, nu)
 

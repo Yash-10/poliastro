@@ -68,30 +68,6 @@ def test_elliptic_near_parabolic(ecc, propagator):
     assert_quantity_allclose(ss_propagator.v, ss_cowell.v)
 
 
-PROPAGATORS = [
-    farnocchia,
-    mikkola,
-    markley,
-    pimienta,
-    gooding,
-    danby,
-]
-@pytest.mark.parametrize("ecc", [0.9, 0.99, 0.999, 0.9999, 0.99999])
-@pytest.mark.parametrize("propagator", PROPAGATORS)
-def test_elliptic_near_parabolic_classical(ecc, propagator):
-    _a = 0.0 * u.rad
-    tof = 1.0 * u.min
-    ss0 = Orbit.from_classical(
-        Earth, 10000 * u.km, ecc * u.one, _a, _a, _a, 1.0 * u.rad
-    )
-
-    ss_cowell = ss0.propagate(tof, method=cowell)
-    ss_propagator = ss0.propagate(tof, method=propagator, elems_type="classical")
-
-    assert_quantity_allclose(ss_propagator.r, ss_cowell.r)
-    assert_quantity_allclose(ss_propagator.v, ss_cowell.v)
-
-
 @pytest.mark.parametrize("ecc", [1.0001, 1.001, 1.01, 1.1])
 @pytest.mark.parametrize("propagator", HYPERBOLIC_PROPAGATORS)
 def test_hyperbolic_near_parabolic(ecc, propagator):
@@ -144,6 +120,9 @@ def test_propagation(propagator):
     assert_quantity_allclose(v, expected_v, rtol=1e-4)
 
 
+PROPAGATORS = [
+    markley,
+]
 @pytest.mark.parametrize("propagator", PROPAGATORS)
 def test_propagation(propagator):
     # Data from Vallado, example 2.4
@@ -154,7 +133,7 @@ def test_propagation(propagator):
 
     ss0 = Orbit.from_vectors(Earth, r0, v0)
     tof = 40 * u.min
-    ss1 = ss0.propagate(tof, method=propagator, elems_type="classical")
+    ss1 = ss0.propagate(tof, method=propagator, classical=True)
 
     r, v = ss1.rv()
 

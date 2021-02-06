@@ -381,7 +381,7 @@ def markley_coe(k, p, ecc, inc, raan, argp, nu, tof):
     return nu
 
 
-@jit(optional)
+@jit
 def markley(*elements, classical=False): # ADD `classical=True` argument ?? # k, r0, v0, tof
     """Solves the kepler problem by a non iterative method. Relative error is
     around 1e-18, only limited by machine double-precision errors.

@@ -275,7 +275,7 @@ def mikkola_coe(k, p, ecc, inc, raan, argp, nu, tof):
 
 
 @jit
-def mikkola(*elements): # k, r0, v0, tof
+def mikkola(*elements):  # k, r0, v0, tof
     """Raw algorithm for Mikkola's Kepler solver.
 
     Parameters
@@ -382,7 +382,7 @@ def markley_coe(k, p, ecc, inc, raan, argp, nu, tof):
 
 
 @jit
-def markley(*elements, classical=False): # ADD `classical=True` argument ?? # k, r0, v0, tof
+def markley(*elements):  # ADD `classical=True` argument ?? # k, r0, v0, tof
     """Solves the kepler problem by a non iterative method. Relative error is
     around 1e-18, only limited by machine double-precision errors.
 
@@ -415,8 +415,6 @@ def markley(*elements, classical=False): # ADD `classical=True` argument ?? # k,
                 True anomaly
             tof: float
                 Time of flight (s).
-    classical: bool, optional
-        Type of orbital elements to use for propagation, default to False  # TODO: CHANGE THE DOCSTRING - EDIT: NO NEED NOW??
 
     Returns
     -------
@@ -432,8 +430,10 @@ def markley(*elements, classical=False): # ADD `classical=True` argument ?? # k,
     """
     # TODO: Add a value error if both conditions are not met
     # Solve first for eccentricity and mean anomaly
-    if len(elements) == 8: # TODO: Remove/Add (DECIDE THAT) `and classical` to ease the user else need to type classical=True -> not intelligent EDIT: DID I THNIK?
-        classical = True
+    if (
+        len(elements) == 8
+    ):  # TODO: Remove/Add (DECIDE THAT) `and classical` to ease the user else need to type classical=True -> not intelligent EDIT: DID I THNIK?
+        # classical = True
         k, p, ecc, inc, raan, argp, nu, tof = elements
         nu = markley_coe(k, p, ecc, inc, raan, argp, nu, tof)
         return coe2rv(k, p, ecc, inc, raan, argp, nu)
@@ -777,7 +777,7 @@ def pimienta_coe(k, p, ecc, inc, raan, argp, nu, tof):
 
 
 @jit
-def pimienta(*elements): # k, r0, v0, tof
+def pimienta(*elements):  # k, r0, v0, tof
     """Raw algorithm for Adonis' Pimienta and John L. Crassidis 15th order
     polynomial Kepler solver.
 
@@ -870,7 +870,9 @@ def gooding_coe(k, p, ecc, inc, raan, argp, nu, tof, numiter=150, rtol=1e-8):
 
 
 @jit
-def gooding(*elements): # NOTE: args like these are not supported in numba: *elements, numiter=150, rtol=1e-8
+def gooding(
+    *elements,
+):  # NOTE: args like these are not supported in numba: *elements, numiter=150, rtol=1e-8
     """Solves the Elliptic Kepler Equation with a cubic convergence and
     accuracy better than 10e-12 rad is normally achieved. It is not valid for
     eccentricities equal or higher than 1.0.
@@ -1002,7 +1004,7 @@ def danby_coe(k, p, ecc, inc, raan, argp, nu, tof, numiter=20, rtol=1e-8):
 
 
 @jit
-def danby(*elements): # k, r0, v0, tof, numiter=20, rtol=1e-8
+def danby(*elements):  # k, r0, v0, tof, numiter=20, rtol=1e-8
     """Kepler solver for both elliptic and parabolic orbits based on Danby's
     algorithm.
 

@@ -295,7 +295,7 @@ def farnocchia_coe(k, p, ecc, inc, raan, argp, nu, tof):
 
 
 @jit
-def farnocchia(*elements): # Initially: k, r0, v0, tof
+def farnocchia(*elements):  # Initially: k, r0, v0, tof
     r"""Propagates orbit using mean motion.
 
     This algorithm depends on the geometric shape of the orbit.
@@ -345,7 +345,7 @@ def farnocchia(*elements): # Initially: k, r0, v0, tof
 
     """
 
-    if len(elements) == 4: # Arguments are cartesian
+    if len(elements) == 4:  # Arguments are cartesian
         # Get the initial true anomaly and orbit parameters that are constant over time
         k, r0, v0, tof = elements
         # k = elements[0]
@@ -357,8 +357,17 @@ def farnocchia(*elements): # Initially: k, r0, v0, tof
         nu = farnocchia_coe(k, p, ecc, inc, raan, argp, nu0, tof)
         return coe2rv(k, p, ecc, inc, raan, argp, nu)
 
-    elif len(elements) == 8: # Arguments are classical
-        k, p, ecc, inc, raan, argp, nu, tof = elements # TUPLE UNPACK FOR HETEROGENOUS TUPLE DOESN'T WORK IN NUMBA
+    elif len(elements) == 8:  # Arguments are classical
+        (
+            k,
+            p,
+            ecc,
+            inc,
+            raan,
+            argp,
+            nu,
+            tof,
+        ) = elements  # TUPLE UNPACK FOR HETEROGENOUS TUPLE DOESN'T WORK IN NUMBA
         # elems = (k, p, ecc, inc, raan, argp, nu, tof)
         # k = elems[0]
         # p = elems[1]

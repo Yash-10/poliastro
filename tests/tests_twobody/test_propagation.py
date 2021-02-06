@@ -123,22 +123,26 @@ def test_propagation(propagator):
 PROPAGATORS = [
     markley,
 ]
+
+
 @pytest.mark.parametrize("propagator", PROPAGATORS)
-def test_propagation(propagator):
+def test_propagation_checking(propagator):
     # Data from Vallado, example 2.4
     r0 = [1131.340, -2282.343, 6672.423] * u.km
     v0 = [-5.64305, 4.30333, 2.42879] * u.km / u.s
-    expected_r = [-4219.7527, 4363.0292, -3958.7666] * u.km
-    expected_v = [3.689866, -1.916735, -6.112511] * u.km / u.s
+    # expected_r = [-4219.7527, 4363.0292, -3958.7666] * u.km
+    # expected_v = [3.689866, -1.916735, -6.112511] * u.km / u.s
 
     ss0 = Orbit.from_vectors(Earth, r0, v0)
     tof = 40 * u.min
     ss1 = ss0.propagate(tof, method=propagator, classical=True)
+    ss2 = ss0.propagate(tof, method=propagator)
 
-    r, v = ss1.rv()
+    r1, v1 = ss1.rv()
+    r2, v2 = ss2.rv()
 
-    assert_quantity_allclose(r, expected_r, rtol=1e-5)
-    assert_quantity_allclose(v, expected_v, rtol=1e-4)
+    assert_quantity_allclose(r1, r2, rtol=1e-5)
+    assert_quantity_allclose(v1, v2, rtol=1e-4)
 
 
 def test_propagating_to_certain_nu_is_correct():

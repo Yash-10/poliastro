@@ -1,5 +1,6 @@
-from astropy import units as u
+from astropy import units as u_
 from numpy.linalg import norm
+from ..core.perturbations import umbral_shadow as umbral_shadow_fast, penumbral_shadow as penumbral_shadow_fast
 
 
 class Event:
@@ -28,7 +29,7 @@ class Event:
 
     @property
     def last_t(self):
-        return self._last_t * u.s
+        return self._last_t * u_.s
 
     def __call__(self, t, u, k):
         raise NotImplementedError
@@ -59,24 +60,74 @@ class AltitudeCrossEvent(Event):
 
     def __call__(self, t, u, k):
         self._last_t = t
-        r_norm = norm(u[:3])
-
-        return (
-            r_norm - self._R - self._alt
-        )  # If this goes from +ve to -ve, altitude is decreasing.
+        H = norm(u[:3])
+        # SciPy will search for H - R = 0
+        return H - self._R
 
 
-class LithobrakeEvent(AltitudeCrossEvent):
-    """Terminal event that detects impact with the attractor surface.
+class PenumbraEvent:
+    """Detect whether a satellite is in penumbra or not.
 
     Parameters
     ----------
-    R : float
-        Radius of the attractor (km).
-    terminal: bool
-        Whether to terminate integration if this event occurs.
+    r_sun: ~astropy.units.Quantity
+        Position vector of the Sun with respect to the Earth.
+    R: ~astropy.units.Quantity
+        Radius of the attractor.
 
     """
+    def __init__(self, r_sun, R):
+        self._r_sun = r_sun
+        self._R = R
+        self._last_t = None
 
-    def __init__(self, R, terminal=True):
-        super().__init__(0, R, terminal, direction=-1)
+    @property
+    def terminal(self):
+        return False  # Satellite keeps on moving, unlike the LithobrakeEvent.
+
+    @property
+    def last_t(self):
+        return self._last_t * u_.s
+
+    def __call__(self, t, u, k):
+        self._last_t = t
+        r_sun = self._r_sun.to(u_.km).value
+        R = self._R.to(u_.km).value
+        r_sat = (u[:3] * u_.km).value
+        shadow = penumbral_shadow_fast(r_sat, r_sun, R)
+
+        return shadow
+
+
+class UmbraEvent:
+    """Detect whether a satellite is in umbra or not.
+
+    Parameters
+    ----------
+    r_sun: ~astropy.units.Quantity
+        Position vector of the Sun with respect to the Earth in the ECI frame.
+    R: ~astropy.units.Quantity
+        Radius of the attractor.
+
+    """
+    def __init__(self, r_sun, R):
+        self._r_sun = r_sun
+        self._R = R
+        self._last_t = None
+
+    @property
+    def terminal(self):
+        return False
+
+    @property
+    def last_t(self):
+        return self._last_t * u_.s
+
+    def __call__(self, t, u, k):
+        self._last_t = t
+        r_sun = self._r_sun.to(u_.km).value
+        R = self._R.to(u_.km).value
+        r_sat = (u[:3] * u_.km).value
+        shadow = umbral_shadow_fast(r_sat, r_sun, R)
+
+        return shadow

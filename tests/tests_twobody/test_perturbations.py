@@ -23,8 +23,45 @@ from poliastro.core.propagation import func_twobody
 from poliastro.earth.atmosphere import COESA76
 from poliastro.ephem import build_ephem_interpolant
 from poliastro.twobody import Orbit
-from poliastro.twobody.events import LithobrakeEvent
+from poliastro.twobody.events import LithobrakeEvent, PenumbraEvent, UmbraEvent
 from poliastro.twobody.propagation import cowell
+
+
+def test_penumbra():
+    tof = 1000
+    r0 = np.array([281.89, 1411.473, 750.672])
+    v0 = np.array([7.36138, 2.98997, 1.64354])
+    orbit = Orbit.from_vectors(Earth, r0 * u.km, v0 * u.km / u.s)
+
+    r_sun = np.array([-11747041, 139486985, 60472278]) * u.km
+    ue = UmbraEvent(r_sun, Earth.R)
+    events = [ue]
+
+    rr, _ = cowell(
+        Earth.k,
+        orbit.r,
+        orbit.v,
+        [tof] * u.s,
+        events=events,
+    )
+
+def test_penumbra():
+    tof = 1000
+    r0 = np.array([281.89, 1411.473, 750.672])
+    v0 = np.array([7.36138, 2.98997, 1.64354])
+    orbit = Orbit.from_vectors(Earth, r0 * u.km, v0 * u.km / u.s)
+
+    r_sun = np.array([-11747041, 139486985, 60472278]) * u.km
+    pe = PenumbraEvent(r_sun, Earth.R)
+    events = [pe]
+
+    rr, _ = cowell(
+        Earth.k,
+        orbit.r,
+        orbit.v,
+        [tof] * u.s,
+        events=events,
+    )
 
 
 @pytest.mark.slow

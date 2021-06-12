@@ -1,6 +1,10 @@
 from astropy import units as u_
 from numpy.linalg import norm
-from ..core.perturbations import umbral_shadow as umbral_shadow_fast, penumbral_shadow as penumbral_shadow_fast
+
+from poliastro.core.perturbations import (
+    penumbral_shadow as penumbral_shadow_fast,
+    umbral_shadow as umbral_shadow_fast,
+)
 
 
 class Event:
@@ -76,6 +80,7 @@ class PenumbraEvent:
         Radius of the attractor.
 
     """
+
     def __init__(self, r_sun, R):
         self._r_sun = r_sun
         self._R = R
@@ -110,6 +115,7 @@ class UmbraEvent:
         Radius of the attractor.
 
     """
+
     def __init__(self, r_sun, R):
         self._r_sun = r_sun
         self._R = R

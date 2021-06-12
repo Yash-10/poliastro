@@ -204,6 +204,77 @@ def shadow_function(r_sat, r_sun, R):
     return theta > theta_1 + theta_2
 
 
+@jit
+def umbral_shadow(r_sat, r_sun, R):
+    r"""Calculate whether a satellite is in umbra or not, follows Algorithm 34 from Vallado.
+
+    Parameters
+    ----------
+    r_sat: numpy.ndarray
+        Position of the satellite in the frame of the attractor (km)
+    r_sun: numpy.ndarray
+        Position of the sun in the frame of the attractor (km)
+    R: float
+        Radius of the body (attractor) responsible for the umbral shadow (km)
+
+    """
+    alpha_um = np.deg2rad(0.264121687)
+    alpha_pen = np.deg2rad(0.269007205)
+
+    dot_sun_sat = np.dot(r_sat, r_sun)
+
+    r_sat_norm = np.sqrt(np.sum(r_sat ** 2))
+    r_sun_norm = np.sqrt(np.sum(r_sun ** 2))
+
+    if dot_sun_sat < 0:
+        angle = np.arccos(dot_sun_sat / r_sat_norm / r_sun_norm)
+        sat_horiz = r_sat_norm * np.cos(angle)
+        sat_vert = r_sat_norm * np.sin(angle)
+        x = R / np.sin(alpha_pen)
+        pen_vert = np.tan(alpha_pen) * (x + sat_horiz)
+        if sat_vert <= pen_vert:
+            y = R / np.sin(alpha_um)
+            umb_vert = np.tan(alpha_um) * (y - sat_horiz)
+            return sat_vert - umb_vert  # +ve to -ve direction means going into umbra.
+        else:
+            return np.inf  # Satellite is not in umbra. TODO: Change this for better handling.
+    else:
+        return np.inf  # Satellite is not in umbra.
+
+
+@jit
+def penumbral_shadow(r_sat, r_sun, R):
+    r"""Calculate whether a satellite is in penumbra or not, follows Algorithm 34 from Vallado.
+
+    Parameters
+    ----------
+    r_sat: numpy.ndarray
+        Position of the satellite in the frame of the attractor (km)
+    r_sun: numpy.ndarray
+        Position of the sun in the frame of the attractor (km)
+    R: float
+        Radius of the body (attractor) responsible for the penumbral shadow (km)
+
+    """
+    alpha_um = np.deg2rad(0.264121687)
+    alpha_pen = np.deg2rad(0.269007205)
+
+    dot_sun_sat = np.dot(r_sat, r_sun)
+
+    r_sat_norm = np.sqrt(np.sum(r_sat ** 2))
+    r_sun_norm = np.sqrt(np.sum(r_sun ** 2))
+
+    if dot_sun_sat < 0:
+        angle = np.arccos(dot_sun_sat / r_sat_norm / r_sun_norm)
+        sat_horiz = r_sat_norm * np.cos(angle)
+        sat_vert = r_sat_norm * np.sin(angle)
+        x = R / np.sin(alpha_pen)
+        pen_vert = np.tan(alpha_pen) * (x + sat_horiz)
+        return sat_vert - pen_vert  # +ve to -ve direction means going into penumbra
+    else:
+        return np.inf  # Satellite is not in Penumbra.
+
+
 def third_body(t0, state, k, k_third, perturbation_body):
     r"""Calculates 3rd body acceleration (km/s2)
 

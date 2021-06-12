@@ -99,9 +99,9 @@ class PenumbraEvent:
         r_sun = self._r_sun.to(u_.km).value
         R = self._R.to(u_.km).value
         r_sat = (u[:3] * u_.km).value
-        shadow = penumbral_shadow_fast(r_sat, r_sun, R)
+        vert_distance = penumbral_shadow_fast(r_sat, r_sun, R)
 
-        return shadow
+        return vert_distance
 
 
 class UmbraEvent:
@@ -134,6 +134,6 @@ class UmbraEvent:
         r_sun = self._r_sun.to(u_.km).value
         R = self._R.to(u_.km).value
         r_sat = (u[:3] * u_.km).value
-        shadow = umbral_shadow_fast(r_sat, r_sun, R)
+        vert_distance = umbral_shadow_fast(r_sat, r_sun, R)
 
-        return shadow
+        return vert_distance

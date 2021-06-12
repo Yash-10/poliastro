@@ -27,39 +27,40 @@ from poliastro.twobody.events import LithobrakeEvent, PenumbraEvent, UmbraEvent
 from poliastro.twobody.propagation import cowell
 
 
-def test_penumbra():
-    tof = 1000
+def test_umbra():
+    tofs = [1000] * u.s
     r0 = np.array([281.89, 1411.473, 750.672])
     v0 = np.array([7.36138, 2.98997, 1.64354])
     orbit = Orbit.from_vectors(Earth, r0 * u.km, v0 * u.km / u.s)
 
     r_sun = np.array([-11747041, 139486985, 60472278]) * u.km
-    ue = UmbraEvent(r_sun, Earth.R)
-    events = [ue]
+    umbra_event = UmbraEvent(r_sun, Earth.R)
+    events = [umbra_event]
 
     rr, _ = cowell(
         Earth.k,
         orbit.r,
         orbit.v,
-        [tof] * u.s,
+        tofs,
         events=events,
     )
 
+
 def test_penumbra():
-    tof = 1000
+    tofs = [1000] * u.s
     r0 = np.array([281.89, 1411.473, 750.672])
     v0 = np.array([7.36138, 2.98997, 1.64354])
     orbit = Orbit.from_vectors(Earth, r0 * u.km, v0 * u.km / u.s)
 
     r_sun = np.array([-11747041, 139486985, 60472278]) * u.km
-    pe = PenumbraEvent(r_sun, Earth.R)
-    events = [pe]
+    penumbra_event = PenumbraEvent(r_sun, Earth.R)
+    events = [penumbra_event]
 
     rr, _ = cowell(
         Earth.k,
         orbit.r,
         orbit.v,
-        [tof] * u.s,
+        tofs,
         events=events,
     )
 

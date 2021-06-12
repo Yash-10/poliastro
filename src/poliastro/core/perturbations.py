@@ -228,8 +228,8 @@ def umbral_shadow(r_sat, r_sun, R):
 
     if dot_sun_sat < 0:
         angle = np.arccos(dot_sun_sat / r_sat_norm / r_sun_norm)
-        sat_horiz = r_sat_norm * np.cos(angle)
-        sat_vert = r_sat_norm * np.sin(angle)
+        sat_horiz = np.abs(r_sat_norm * np.cos(angle))
+        sat_vert = np.abs(r_sat_norm * np.sin(angle))
         x = R / np.sin(alpha_pen)
         pen_vert = np.tan(alpha_pen) * (x + sat_horiz)
         if sat_vert <= pen_vert:
@@ -237,9 +237,9 @@ def umbral_shadow(r_sat, r_sun, R):
             umb_vert = np.tan(alpha_um) * (y - sat_horiz)
             return sat_vert - umb_vert  # +ve to -ve direction means going into umbra.
         else:
-            return np.inf  # Satellite is not in umbra. TODO: Change this for better handling.
+            return np.nan # Satellite is not in umbra. Remove `nan` since it makes the function discontinuous?
     else:
-        return np.inf  # Satellite is not in umbra.
+        return np.nan  # Satellite is not in umbra.
 
 
 @jit
@@ -266,13 +266,13 @@ def penumbral_shadow(r_sat, r_sun, R):
 
     if dot_sun_sat < 0:
         angle = np.arccos(dot_sun_sat / r_sat_norm / r_sun_norm)
-        sat_horiz = r_sat_norm * np.cos(angle)
-        sat_vert = r_sat_norm * np.sin(angle)
+        sat_horiz = np.abs(r_sat_norm * np.cos(angle))
+        sat_vert = np.abs(r_sat_norm * np.sin(angle))
         x = R / np.sin(alpha_pen)
         pen_vert = np.tan(alpha_pen) * (x + sat_horiz)
         return sat_vert - pen_vert  # +ve to -ve direction means going into penumbra
     else:
-        return np.inf  # Satellite is not in Penumbra.
+        return np.nan  # Satellite is not in Penumbra.
 
 
 def third_body(t0, state, k, k_third, perturbation_body):

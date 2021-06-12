@@ -239,7 +239,7 @@ def umbral_shadow(r_sat, r_sun, R):
         else:
             return sat_vert  # Satellite is not in umbra.
     else:
-        return sat_vert  # Satellite is not in umbra.
+        return r_sat_norm  # Satellite is not in umbra.
 
 
 @jit
@@ -271,7 +271,7 @@ def penumbral_shadow(r_sat, r_sun, R):
         pen_vert = np.tan(alpha_pen) * (x + sat_horiz)
         return sat_vert - pen_vert  # +ve to -ve direction means going into penumbra
     else:
-        return sat_vert  # Satellite is not in Penumbra.
+        return r_sat_norm  # Satellite is not in Penumbra.
 
 
 def third_body(t0, state, k, k_third, perturbation_body):

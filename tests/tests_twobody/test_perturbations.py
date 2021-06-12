@@ -45,6 +45,8 @@ def test_umbra():
         events=events,
     )
 
+    assert umbra_event.last_t == tofs[-1]
+
 
 def test_penumbra():
     tofs = [1000] * u.s
@@ -63,6 +65,8 @@ def test_penumbra():
         tofs,
         events=events,
     )
+
+    assert penumbra_event.last_t == tofs[-1]
 
 
 @pytest.mark.slow

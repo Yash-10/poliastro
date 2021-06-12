@@ -237,9 +237,9 @@ def umbral_shadow(r_sat, r_sun, R):
             umb_vert = np.tan(alpha_um) * (y - sat_horiz)
             return sat_vert - umb_vert  # +ve to -ve direction means going into umbra.
         else:
-            return np.nan # Satellite is not in umbra. Remove `nan` since it makes the function discontinuous?
+            return sat_vert  # Satellite is not in umbra.
     else:
-        return np.nan  # Satellite is not in umbra.
+        return sat_vert  # Satellite is not in umbra.
 
 
 @jit
@@ -256,7 +256,6 @@ def penumbral_shadow(r_sat, r_sun, R):
         Radius of the body (attractor) responsible for the penumbral shadow (km)
 
     """
-    alpha_um = np.deg2rad(0.264121687)
     alpha_pen = np.deg2rad(0.269007205)
 
     dot_sun_sat = np.dot(r_sat, r_sun)
@@ -272,7 +271,7 @@ def penumbral_shadow(r_sat, r_sun, R):
         pen_vert = np.tan(alpha_pen) * (x + sat_horiz)
         return sat_vert - pen_vert  # +ve to -ve direction means going into penumbra
     else:
-        return np.nan  # Satellite is not in Penumbra.
+        return sat_vert  # Satellite is not in Penumbra.
 
 
 def third_body(t0, state, k, k_third, perturbation_body):

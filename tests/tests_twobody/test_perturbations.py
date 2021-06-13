@@ -28,12 +28,32 @@ from poliastro.twobody.propagation import cowell
 
 
 def test_umbra():
-    tofs = [1000] * u.s
-    r0 = np.array([281.89, 1411.473, 750.672])
-    v0 = np.array([7.36138, 2.98997, 1.64354])
-    orbit = Orbit.from_vectors(Earth, r0 * u.km, v0 * u.km / u.s)
+    r_sun = np.array([-11747041, 139486985, 60472278]) << u.km
 
-    r_sun = np.array([-11747041, 139486985, 60472278]) * u.km
+    tofs = np.array([0, 100, 1000]) << u.d
+    r0 = np.array([2817.899, -14110.473, -7502.672]) << u.km
+    v0 = np.array([736.138, 298.997, 164.354]) << u.km / u.s
+    orbit = Orbit.from_vectors(Earth, r0, v0)
+
+    umbra_event = UmbraEvent(r_sun, Earth.R)
+    events = [umbra_event]
+
+    rr, _ = cowell(
+        Earth.k,
+        orbit.r,
+        orbit.v,
+        tofs,
+        events=events,
+    )
+
+    # assert ?
+
+    # Check umbra event not firing is ok.
+    tofs = [1000] * u.s
+    r0 = np.array([281.89, 1411.473, 750.672]) << u.km
+    v0 = np.array([7.36138, 2.98997, 1.64354]) << u.km / u.s
+    orbit = Orbit.from_vectors(Earth, r0, v0)
+
     umbra_event = UmbraEvent(r_sun, Earth.R)
     events = [umbra_event]
 
@@ -49,12 +69,32 @@ def test_umbra():
 
 
 def test_penumbra():
-    tofs = [1000] * u.s
-    r0 = np.array([281.89, 1411.473, 750.672])
-    v0 = np.array([7.36138, 2.98997, 1.64354])
-    orbit = Orbit.from_vectors(Earth, r0 * u.km, v0 * u.km / u.s)
+    r_sun = np.array([-11747041, 139486985, 60472278]) << u.km
 
-    r_sun = np.array([-11747041, 139486985, 60472278]) * u.km
+    tofs = np.array([0, 100, 1000]) << u.d
+    r0 = np.array([2817.899, -14110.473, -7502.672]) << u.km
+    v0 = np.array([736.138, 298.997, 164.354]) << u.km / u.s
+    orbit = Orbit.from_vectors(Earth, r0, v0)
+
+    penumbra_event = PenumbraEvent(r_sun, Earth.R)
+    events = [penumbra_event]
+
+    rr, _ = cowell(
+        Earth.k,
+        orbit.r,
+        orbit.v,
+        tofs,
+        events=events,
+    )
+
+    # assert ?
+
+    # Check penumbra event not firing is ok.
+    tofs = [1000] * u.s
+    r0 = np.array([281.89, 1411.473, 750.672]) << u.km
+    v0 = np.array([7.36138, 2.98997, 1.64354]) << u.km / u.s
+    orbit = Orbit.from_vectors(Earth, r0, v0)
+
     penumbra_event = PenumbraEvent(r_sun, Earth.R)
     events = [penumbra_event]
 

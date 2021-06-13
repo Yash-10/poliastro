@@ -1,4 +1,4 @@
-from astropy import units as u_
+from astropy import units as u
 from numpy.linalg import norm
 
 from poliastro.core.perturbations import (
@@ -33,7 +33,7 @@ class Event:
 
     @property
     def last_t(self):
-        return self._last_t * u_.s
+        return self._last_t * u.s
 
     def __call__(self, t, u, k):
         raise NotImplementedError
@@ -64,7 +64,7 @@ class AltitudeCrossEvent(Event):
 
     def __call__(self, t, u, k):
         self._last_t = t
-        H = norm(u[:3])
+        H = norm(u_[:3])
         # SciPy will search for H - R = 0
         return H - self._R
 
@@ -92,13 +92,13 @@ class PenumbraEvent:
 
     @property
     def last_t(self):
-        return self._last_t * u_.s
+        return self._last_t * u.s
 
-    def __call__(self, t, u, k):
+    def __call__(self, t, u_, k):
         self._last_t = t
-        r_sun = self._r_sun.to(u_.km).value
-        R = self._R.to(u_.km).value
-        r_sat = (u[:3] * u_.km).value
+        r_sun = self._r_sun.to(u.km).value
+        R = self._R.to(u.km).value
+        r_sat = (u_[:3] * u.km).value
         vert_distance = penumbral_shadow_fast(r_sat, r_sun, R)
 
         return vert_distance
@@ -127,13 +127,13 @@ class UmbraEvent:
 
     @property
     def last_t(self):
-        return self._last_t * u_.s
+        return self._last_t * u.s
 
-    def __call__(self, t, u, k):
+    def __call__(self, t, u_, k):
         self._last_t = t
-        r_sun = self._r_sun.to(u_.km).value
-        R = self._R.to(u_.km).value
-        r_sat = (u[:3] * u_.km).value
+        r_sun = self._r_sun.to(u.km).value
+        R = self._R.to(u.km).value
+        r_sat = (u_[:3] * u.km).value
         vert_distance = umbral_shadow_fast(r_sat, r_sun, R)
 
         return vert_distance

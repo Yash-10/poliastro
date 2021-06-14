@@ -205,21 +205,24 @@ def shadow_function(r_sat, r_sun, R):
 
 
 @jit
-def umbral_shadow(r_sat, r_sun, R):
+def is_in_umbral_shadow(r_sat, r_sun, r_s, r_p):
     r"""Calculate whether a satellite is in umbra or not, follows Algorithm 34 from Vallado.
 
     Parameters
     ----------
     r_sat: numpy.ndarray
-        Position of the satellite in the frame of the attractor (km)
+        Position of the satellite in the frame of the attractor (km).
     r_sun: numpy.ndarray
-        Position of the sun in the frame of the attractor (km)
-    R: float
-        Radius of the body (attractor) responsible for the umbral shadow (km)
+        Position of the sun in the frame of the attractor (km).
+    r_s: float
+        Radius of the secondary body.
+    r_p: float
+        Radius of the primary body (attractor) responsible for the umbral shadow (km).
 
     """
-    alpha_um = np.deg2rad(0.264121687)
-    alpha_pen = np.deg2rad(0.269007205)
+    R_p = norm(r_sun)
+    alpha_um = np.arcsin((r_s - r_p) / R_p)
+    alpha_pen = np.arcsin((r_s + r_p) / R_p)
 
     dot_sun_sat = np.dot(r_sat, r_sun)
 
@@ -230,33 +233,37 @@ def umbral_shadow(r_sat, r_sun, R):
         angle = np.arccos(dot_sun_sat / r_sat_norm / r_sun_norm)
         sat_horiz = np.abs(r_sat_norm * np.cos(angle))
         sat_vert = np.abs(r_sat_norm * np.sin(angle))
-        x = R / np.sin(alpha_pen)
+        x = r_p / np.sin(alpha_pen)
         pen_vert = np.tan(alpha_pen) * (x + sat_horiz)
         if sat_vert <= pen_vert:
-            y = R / np.sin(alpha_um)
+            y = r_p / np.sin(alpha_um)
             umb_vert = np.tan(alpha_um) * (y - sat_horiz)
-            return sat_vert - umb_vert  # +ve to -ve direction means going into umbra.
+            # Edge condition for entering umbra: sat_vert - pen_vert = 0.
+            return sat_vert - umb_vert  # +ve to -ve direction means entering umbra.
         else:
-            return sat_vert  # Satellite is not in umbra.
+            return r_sat_norm  # Satellite is not in umbra.
     else:
         return r_sat_norm  # Satellite is not in umbra.
 
 
 @jit
-def penumbral_shadow(r_sat, r_sun, R):
+def is_in_penumbral_shadow(r_sat, r_sun, r_s, r_p):
     r"""Calculate whether a satellite is in penumbra or not, follows Algorithm 34 from Vallado.
 
     Parameters
     ----------
     r_sat: numpy.ndarray
-        Position of the satellite in the frame of the attractor (km)
+        Position of the satellite in the frame of the attractor (km).
     r_sun: numpy.ndarray
-        Position of the sun in the frame of the attractor (km)
-    R: float
-        Radius of the body (attractor) responsible for the penumbral shadow (km)
+        Position of the sun in the frame of the attractor (km).
+    r_s: float
+        Radius of the secondary body.
+    r_p: float
+        Radius of the primary body (attractor) responsible for the umbral shadow (km).
 
     """
-    alpha_pen = np.deg2rad(0.269007205)
+    R_p = norm(r_sun)
+    alpha_pen = np.arcsin((r_s + r_p) / R_p)
 
     dot_sun_sat = np.dot(r_sat, r_sun)
 
@@ -267,11 +274,12 @@ def penumbral_shadow(r_sat, r_sun, R):
         angle = np.arccos(dot_sun_sat / r_sat_norm / r_sun_norm)
         sat_horiz = np.abs(r_sat_norm * np.cos(angle))
         sat_vert = np.abs(r_sat_norm * np.sin(angle))
-        x = R / np.sin(alpha_pen)
+        x = r_p / np.sin(alpha_pen)
         pen_vert = np.tan(alpha_pen) * (x + sat_horiz)
-        return sat_vert - pen_vert  # +ve to -ve direction means going into penumbra
+        # Edge condition for entering penumbra: sat_vert - pen_vert = 0.
+        return sat_vert - pen_vert  # +ve to -ve direction means entering penumbra.
     else:
-        return r_sat_norm  # Satellite is not in Penumbra.
+        return r_sat_norm  # Satellite is not in penumbra.
 
 
 def third_body(t0, state, k, k_third, perturbation_body):

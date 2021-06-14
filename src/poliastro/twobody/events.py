@@ -2,8 +2,8 @@ from astropy import units as u
 from numpy.linalg import norm
 
 from poliastro.core.perturbations import (
-    penumbral_shadow as penumbral_shadow_fast,
-    umbral_shadow as umbral_shadow_fast,
+    is_in_penumbral_shadow as is_in_penumbral_shadow_fast,
+    is_in_umbral_shadow as is_in_umbral_shadow_fast,
 )
 
 
@@ -81,14 +81,16 @@ class PenumbraEvent:
 
     """
 
-    def __init__(self, r_sun, R):
+    def __init__(self, r_sun, r_s, r_p, terminal=False):
         self._r_sun = r_sun
-        self._R = R
+        self._r_s = r_s
+        self._r_p = r_p
         self._last_t = None
+        self._terminal = terminal
 
     @property
     def terminal(self):
-        return False  # Satellite keeps on moving, unlike the LithobrakeEvent.
+        return self._terminal
 
     @property
     def last_t(self):
@@ -96,12 +98,13 @@ class PenumbraEvent:
 
     def __call__(self, t, u_, k):
         self._last_t = t
+        r_sat = (u_[:3] << u.km).value
         r_sun = self._r_sun.to(u.km).value
-        R = self._R.to(u.km).value
-        r_sat = (u_[:3] * u.km).value
-        vert_distance = penumbral_shadow_fast(r_sat, r_sun, R)
+        r_s = self._r_s.to(u.km).value
+        r_p = self._r_p.to(u.km).value
+        is_in_penumbra = is_in_penumbral_shadow_fast(r_sat, r_sun, r_s, r_p)
 
-        return vert_distance
+        return 0 if is_in_penumbra == 0 else 1
 
 
 class UmbraEvent:
@@ -116,14 +119,16 @@ class UmbraEvent:
 
     """
 
-    def __init__(self, r_sun, R):
+    def __init__(self, r_sun, r_s, r_p, terminal=False):
         self._r_sun = r_sun
-        self._R = R
+        self._r_s = r_s
+        self._r_p = r_p
         self._last_t = None
+        self._terminal = terminal
 
     @property
     def terminal(self):
-        return False
+        return self._terminal
 
     @property
     def last_t(self):
@@ -131,9 +136,10 @@ class UmbraEvent:
 
     def __call__(self, t, u_, k):
         self._last_t = t
+        r_sat = (u_[:3] << u.km).value
         r_sun = self._r_sun.to(u.km).value
-        R = self._R.to(u.km).value
-        r_sat = (u_[:3] * u.km).value
-        vert_distance = umbral_shadow_fast(r_sat, r_sun, R)
+        r_s = self._r_s.to(u.km).value
+        r_p = self._r_p.to(u.km).value
+        is_in_umbra = is_in_umbral_shadow_fast(r_sat, r_sun, r_s, r_p)
 
-        return vert_distance
+        return 0 if is_in_umbra == 0 else 1

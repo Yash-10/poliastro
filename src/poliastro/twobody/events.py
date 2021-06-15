@@ -1,9 +1,9 @@
 from astropy import units as u
 from numpy.linalg import norm
 
-from poliastro.core.perturbations import (
-    is_in_penumbral_shadow as is_in_penumbral_shadow_fast,
-    is_in_umbral_shadow as is_in_umbral_shadow_fast,
+from poliastro.core.events import (
+    in_penumbral_shadow as in_penumbral_shadow_fast,
+    in_umbral_shadow as in_umbral_shadow_fast,
 )
 
 
@@ -74,17 +74,19 @@ class PenumbraEvent:
 
     Parameters
     ----------
-    r_sun: ~astropy.units.Quantity
-        Position vector of the Sun with respect to the Earth.
-    R: ~astropy.units.Quantity
-        Radius of the attractor.
+    r_sec: ~astropy.units.Quantity
+        Position vector of the seconday body with respect to the primary body.
+    orbit: poliastro.twobody.orbit.Orbit
+        Orbit of the satellite.
+    terminal: bool
+        Whether to terminate integration when the event occurs, defaults to False.
 
     """
 
-    def __init__(self, r_sun, r_s, r_p, terminal=False):
-        self._r_sun = r_sun
-        self._r_s = r_s
-        self._r_p = r_p
+    def __init__(self, r_sec, orbit, terminal=False):
+        self._r_sec = r_sec
+        self._R_s = orbit.attractor.parent.R
+        self._R_p = orbit.attractor.R
         self._last_t = None
         self._terminal = terminal
 
@@ -99,12 +101,12 @@ class PenumbraEvent:
     def __call__(self, t, u_, k):
         self._last_t = t
         r_sat = (u_[:3] << u.km).value
-        r_sun = self._r_sun.to(u.km).value
-        r_s = self._r_s.to(u.km).value
-        r_p = self._r_p.to(u.km).value
-        is_in_penumbra = is_in_penumbral_shadow_fast(r_sat, r_sun, r_s, r_p)
+        r_sec = self._r_sec.to(u.km).value
+        R_s = self._R_s.to(u.km).value
+        R_p = self._R_p.to(u.km).value
+        in_penumbra = in_penumbral_shadow_fast(r_sat, r_sec, R_s, R_p)
 
-        return 0 if is_in_penumbra == 0 else 1
+        return 0 if in_penumbra else 1
 
 
 class UmbraEvent:
@@ -112,17 +114,19 @@ class UmbraEvent:
 
     Parameters
     ----------
-    r_sun: ~astropy.units.Quantity
-        Position vector of the Sun with respect to the Earth in the ECI frame.
-    R: ~astropy.units.Quantity
-        Radius of the attractor.
+    r_sec: ~astropy.units.Quantity
+        Position vector of the secondary body with respect to the Earth.
+    orbit: poliastro.twobody.orbit.Orbit
+        Orbit of the satellite.
+    terminal: bool
+        Whether to terminate integration when the event occurs, defaults to False.
 
     """
 
-    def __init__(self, r_sun, r_s, r_p, terminal=False):
-        self._r_sun = r_sun
-        self._r_s = r_s
-        self._r_p = r_p
+    def __init__(self, r_sec, orbit, terminal=False):
+        self._r_sec = r_sec
+        self._R_s = orbit.attractor.parent.R
+        self._R_p = orbit.attractor.R
         self._last_t = None
         self._terminal = terminal
 
@@ -137,9 +141,9 @@ class UmbraEvent:
     def __call__(self, t, u_, k):
         self._last_t = t
         r_sat = (u_[:3] << u.km).value
-        r_sun = self._r_sun.to(u.km).value
-        r_s = self._r_s.to(u.km).value
-        r_p = self._r_p.to(u.km).value
-        is_in_umbra = is_in_umbral_shadow_fast(r_sat, r_sun, r_s, r_p)
+        r_sec = self._r_sec.to(u.km).value
+        R_s = self._R_s.to(u.km).value
+        R_p = self._R_p.to(u.km).value
+        in_umbra = in_umbral_shadow_fast(r_sat, r_sec, R_s, R_p)
 
-        return 0 if is_in_umbra == 0 else 1
+        return 0 if in_umbra else 1

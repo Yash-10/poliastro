@@ -35,7 +35,7 @@ def test_umbra():
     v0 = np.array([736.138, 298.997, 164.354]) << u.km / u.s
     orbit = Orbit.from_vectors(Earth, r0, v0)
 
-    umbra_event = UmbraEvent(r_sun, Sun.R, Earth.R)
+    umbra_event = UmbraEvent(r_sun, orbit)
     events = [umbra_event]
 
     rr, _ = cowell(
@@ -49,7 +49,7 @@ def test_umbra():
     # assert ?
 
     # Check terminal works
-    umbra_event = UmbraEvent(r_sun, Sun.R, Earth.R, terminal=True)
+    umbra_event = UmbraEvent(r_sun, orbit, terminal=True)
     events = [umbra_event]
 
     rr, _ = cowell(
@@ -68,7 +68,7 @@ def test_umbra():
     v0 = np.array([7.36138, 2.98997, 1.64354]) << u.km / u.s
     orbit = Orbit.from_vectors(Earth, r0, v0)
 
-    umbra_event = UmbraEvent(r_sun, Sun.R, Earth.R)
+    umbra_event = UmbraEvent(r_sun, orbit)
     events = [umbra_event]
 
     rr, _ = cowell(
@@ -90,7 +90,7 @@ def test_penumbra():
     v0 = np.array([736.138, 298.997, 164.354]) << u.km / u.s
     orbit = Orbit.from_vectors(Earth, r0, v0)
 
-    penumbra_event = PenumbraEvent(r_sun, Sun.R, Earth.R)
+    penumbra_event = PenumbraEvent(r_sun, orbit)
     events = [penumbra_event]
 
     rr, _ = cowell(
@@ -104,7 +104,7 @@ def test_penumbra():
     # assert ?
 
     # Check terminal works
-    penumbra_event = PenumbraEvent(r_sun, Sun.R, Earth.R, terminal=True)
+    penumbra_event = PenumbraEvent(r_sun, orbit, terminal=True)
     events = [penumbra_event]
 
     rr, _ = cowell(
@@ -123,7 +123,7 @@ def test_penumbra():
     v0 = np.array([7.36138, 2.98997, 1.64354]) << u.km / u.s
     orbit = Orbit.from_vectors(Earth, r0, v0)
 
-    penumbra_event = PenumbraEvent(r_sun, Sun.R, Earth.R)
+    penumbra_event = PenumbraEvent(r_sun, orbit)
     events = [penumbra_event]
 
     rr, _ = cowell(

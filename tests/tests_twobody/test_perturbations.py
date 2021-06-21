@@ -638,6 +638,7 @@ def test_solar_pressure(t_days, deltas_expected, sun_r):
                 u_,
                 k,
                 R=Earth.R.to(u.km).value,
+                R_polar=Earth.R_polar.to(u.km).value,
                 C_R=2.0,
                 A_over_m=2e-4 / 100,
                 Wdivc_s=Wdivc_sun.value,

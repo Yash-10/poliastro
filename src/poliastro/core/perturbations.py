@@ -3,6 +3,7 @@ from astropy import units as u
 from numba import njit as jit
 from numpy.linalg import norm
 
+from poliastro.core.events import line_of_sight as line_of_sight_fast
 
 @jit
 def J2_perturbation(t0, state, k, J2, R):
@@ -177,7 +178,7 @@ def atmospheric_drag_model(t0, state, k, R, C_D, A_over_m, model):
 
 
 @jit
-def shadow_function(r_sat, r_sun, R):
+def shadow_function(r_sat, r_sun, R, R_polar):
     r"""Determines whether the satellite is in attractor's shadow, uses algorithm 12.3 from Howard Curtis
 
     Parameters
@@ -187,21 +188,17 @@ def shadow_function(r_sat, r_sun, R):
     r_sun : numpy.ndarray
         Position of star in the frame of attractor (km).
     R : float
-        Radius of body (attractor) that creates the shadow (km).
+        Equatorial radius of body (attractor) that creates the shadow (km).
+    R_polar: float
+        Polar radius of body (attractor) that creates the shadow (km).
 
     Returns
     -------
     bool: True if satellite is in Earth's shadow, else False.
 
     """
-    r_sat_norm = np.sqrt(np.sum(r_sat ** 2))
-    r_sun_norm = np.sqrt(np.sum(r_sun ** 2))
-
-    theta = np.arccos(np.dot(r_sat, r_sun) / r_sat_norm / r_sun_norm)
-    theta_1 = np.arccos(R / r_sat_norm)
-    theta_2 = np.arccos(R / r_sun_norm)
-
-    return theta > theta_1 + theta_2
+    is_los = line_of_sight_fast(r_sat, r_sun, R, R_polar, ellipsoid=False)
+    return is_los
 
 
 def third_body(t0, state, k, k_third, perturbation_body):
@@ -232,7 +229,7 @@ def third_body(t0, state, k, k_third, perturbation_body):
     return k_third * delta_r / norm(delta_r) ** 3 - k_third * body_r / norm(body_r) ** 3
 
 
-def radiation_pressure(t0, state, k, R, C_R, A_over_m, Wdivc_s, star):
+def radiation_pressure(t0, state, k, R, R_polar, C_R, A_over_m, Wdivc_s, star):
     r"""Calculates radiation pressure acceleration (km/s2)
 
     .. math::
@@ -248,7 +245,9 @@ def radiation_pressure(t0, state, k, R, C_R, A_over_m, Wdivc_s, star):
     k : float
         Standard Gravitational parameter (km^3/s^2).
     R : float
-        Radius of the attractor.
+        Equatorial radius of the attractor.
+    R_polar: float
+        Polar radius of the attractor.
     C_R: float
         Dimensionless radiation pressure coefficient, 1 < C_R < 2 ().
     A_over_m: float
@@ -268,5 +267,5 @@ def radiation_pressure(t0, state, k, R, C_R, A_over_m, Wdivc_s, star):
     r_sat = state[:3]
     P_s = Wdivc_s / (norm(r_star) ** 2)
 
-    nu = float(not (shadow_function(r_sat, r_star, R)))
+    nu = float(shadow_function(r_sat, r_star, R, R_polar))
     return -nu * P_s * (C_R * A_over_m) * r_star / norm(r_star)

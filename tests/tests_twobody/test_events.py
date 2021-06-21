@@ -11,6 +11,7 @@ from poliastro.core.propagation import func_twobody
 from poliastro.twobody import Orbit
 from poliastro.twobody.events import AltitudeCrossEvent
 from poliastro.twobody.propagation import cowell
+from poliastro.core.events import line_of_sight
 
 
 @pytest.mark.slow
@@ -78,3 +79,20 @@ def test_altitude_cross_not_happening_is_ok():
     )
 
     assert altitude_cross_event.last_t == tofs[-1]
+
+
+def test_line_of_sight():
+    # From Vallado example 5.6
+    r1 = np.array([0, -4464.696, -5102.509]) << u.km
+    v1 = np.array([1, 2, 3]) << u.km/u.s
+    r2 = np.array([0, 5740.323, 3189.068]) << u.km
+    v2 = np.array([2, 3, 4]) << u.km/u.s
+    r_sun = np.array([122233179, -76150708, 33016374]) << u.km
+    R = Earth.R.to(u.km).value
+    R_polar = Earth.R_polar.to(u.km).value
+
+    los = line_of_sight(r1.value, r2.value, R, R_polar)
+    los_with_sun = line_of_sight(r1.value, r_sun.value, R, R_polar)
+
+    assert not(los)
+    assert los_with_sun

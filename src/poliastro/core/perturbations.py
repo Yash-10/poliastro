@@ -5,6 +5,7 @@ from numpy.linalg import norm
 
 from poliastro.core.events import line_of_sight as line_of_sight_fast
 
+
 @jit
 def J2_perturbation(t0, state, k, J2, R):
     r"""Calculates J2_perturbation acceleration (km/s2)

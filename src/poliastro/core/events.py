@@ -1,8 +1,6 @@
 import numpy as np
 from numba import njit as jit
 
-from poliastro.core.elements import coe2rv, rv2coe
-
 
 @jit
 def line_of_sight(r1, r2, R, R_polar, ellipsoid=True):
@@ -30,8 +28,8 @@ def line_of_sight(r1, r2, R, R_polar, ellipsoid=True):
     """
     los = False
     # Create temp variables to prevent overwriting r1 and r2.
-    temp_r1 = r1 #
-    temp_r2 = r2 #
+    temp_r1 = r1
+    temp_r2 = r2
 
     r1_sqrd = np.dot(temp_r1, temp_r1)
     r2_sqrd = np.dot(temp_r2, temp_r2)

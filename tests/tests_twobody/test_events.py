@@ -6,12 +6,12 @@ from numpy.linalg import norm
 
 from poliastro.bodies import Earth
 from poliastro.constants import H0_earth, rho0_earth
+from poliastro.core.events import line_of_sight
 from poliastro.core.perturbations import atmospheric_drag_exponential
 from poliastro.core.propagation import func_twobody
 from poliastro.twobody import Orbit
 from poliastro.twobody.events import AltitudeCrossEvent
 from poliastro.twobody.propagation import cowell
-from poliastro.core.events import line_of_sight
 
 
 @pytest.mark.slow
@@ -84,9 +84,7 @@ def test_altitude_cross_not_happening_is_ok():
 def test_line_of_sight():
     # From Vallado example 5.6
     r1 = np.array([0, -4464.696, -5102.509]) << u.km
-    v1 = np.array([1, 2, 3]) << u.km/u.s
     r2 = np.array([0, 5740.323, 3189.068]) << u.km
-    v2 = np.array([2, 3, 4]) << u.km/u.s
     r_sun = np.array([122233179, -76150708, 33016374]) << u.km
     R = Earth.R.to(u.km).value
     R_polar = Earth.R_polar.to(u.km).value
@@ -94,5 +92,5 @@ def test_line_of_sight():
     los = line_of_sight(r1.value, r2.value, R, R_polar)
     los_with_sun = line_of_sight(r1.value, r_sun.value, R, R_polar)
 
-    assert not(los)
+    assert not (los)
     assert los_with_sun

@@ -180,7 +180,7 @@ def atmospheric_drag_model(t0, state, k, R, C_D, A_over_m, model):
 
 @jit
 def shadow_function(r_sat, r_sun, R, R_polar):
-    r"""Determines whether the satellite is in attractor's shadow, uses algorithm 12.3 from Howard Curtis
+    r"""Determines whether a satellite is in attractor's shadow.
 
     Parameters
     ----------
@@ -198,7 +198,7 @@ def shadow_function(r_sat, r_sun, R, R_polar):
     bool: True if satellite is in Earth's shadow, else False.
 
     """
-    is_los = line_of_sight_fast(r_sat, r_sun, R, R_polar, ellipsoid=False)
+    is_los = line_of_sight_fast(r_sat, r_sun, R, R_polar)
     return is_los
 
 

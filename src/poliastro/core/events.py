@@ -3,7 +3,7 @@ from numba import njit as jit
 
 
 @jit
-def line_of_sight(r1, r2, R, R_polar, ellipsoid=True):
+def line_of_sight(r1, r2, R, R_polar):
     """Calculate whether there exists a line-of-sight (LOS) between two
     position vectors, r1 and r2.
 
@@ -34,13 +34,12 @@ def line_of_sight(r1, r2, R, R_polar, ellipsoid=True):
     r1_sqrd = np.dot(temp_r1, temp_r1)
     r2_sqrd = np.dot(temp_r2, temp_r2)
 
-    if ellipsoid:
-        ecc = np.sqrt(1 - (R_polar / R) ** 2)
-        # Account for ellipsoidal Earth.
-        scale_factor = 1 / np.sqrt(1 - ecc ** 2)
-        # Scale k-component of the vectors.
-        temp_r1[-1] = temp_r1[-1] * scale_factor
-        temp_r2[-1] = temp_r2[-1] * scale_factor
+    ecc = np.sqrt(1 - (R_polar / R) ** 2)
+    # Account for ellipsoidal Earth.
+    scale_factor = 1 / np.sqrt(1 - ecc ** 2)
+    # Scale k-component of the vectors.
+    temp_r1[-1] = temp_r1[-1] * scale_factor
+    temp_r2[-1] = temp_r2[-1] * scale_factor
 
     dot_temp_r1_r2 = np.dot(temp_r1, temp_r2)
 

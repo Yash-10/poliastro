@@ -1,5 +1,6 @@
 import numpy as np
 from numba import njit as jit
+from numpy.linalg import norm
 
 
 @jit
@@ -26,6 +27,9 @@ def line_of_sight(r1, r2, R, R_polar):
         True if there exists a LOS, else False.
 
     """
+    if norm(r1) <= R or norm(r2) <= R:
+        raise ValueError("Both r1 and r2 must be above the surface of the attractor.")
+
     los = False
     # Create temp variables to prevent overwriting r1 and r2.
     temp_r1 = r1

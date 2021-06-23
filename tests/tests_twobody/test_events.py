@@ -94,3 +94,17 @@ def test_line_of_sight():
 
     assert not (los)
     assert los_with_sun
+
+
+def test_line_of_sight_raises_error_if_position_below_surface_of_attractor():
+    r1 = np.array([10, 20, 30]) << u.km  # Below the surface of attractor.
+    r2 = np.array([0, 5740.323, 3189.068]) << u.km
+    R = Earth.R.to(u.km).value
+    R_polar = Earth.R_polar.to(u.km).value
+
+    with pytest.raises(ValueError) as excinfo:
+        line_of_sight(r1.value, r2.value, R, R_polar)
+    assert (
+        "Both r1 and r2 must be above the surface of the attractor."
+        in excinfo.exconly()
+    )

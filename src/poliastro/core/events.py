@@ -18,8 +18,6 @@ def line_of_sight(r1, r2, R, R_polar):
         Equatorial radius of the attractor.
     R_polar: float
         Polar radius of the attractor.
-    ellipsoid: bool, optional
-        Whether the attractor shape is taken as ellipsoid or not, defaults to True.
 
     Returns
     -------

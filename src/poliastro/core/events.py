@@ -6,7 +6,7 @@ from numpy.linalg import norm
 @jit
 def line_of_sight(r1, r2, R, R_polar):
     """Calculate whether there exists a line-of-sight (LOS) between two
-    position vectors, r1 and r2.
+    position vectors, r1 and r2. Follows algorithm 35 (SIGHT) from Vallado.
 
     Parameters
     ----------

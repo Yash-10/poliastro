@@ -29,16 +29,18 @@ def in_umbral_shadow(r_sat, r_sec, R_s, R_p):
     r_sec_norm = np.linalg.norm(r_sec)
 
     if dot_sec_sat < 0:
-        angle = np.arccos(dot_sec_sat / r_sat_norm / r_sec_norm)
-        sat_horiz = np.abs(r_sat_norm * np.cos(angle))
-        sat_vert = np.abs(r_sat_norm * np.sin(angle))
+        temp = np.dot(-r_sec, r_sat) / r_sat_norm / r_sec_norm
+        angle = np.arccos(temp)
+        sat_horiz = r_sat_norm * np.cos(angle)
+        sat_vert = r_sat_norm * np.sin(angle)
         x = R_p / np.sin(alpha_pen)
         pen_vert = np.tan(alpha_pen) * (x + sat_horiz)
         if sat_vert <= pen_vert:
             y = R_p / np.sin(alpha_um)
             umb_vert = np.tan(alpha_um) * (y - sat_horiz)
             # Edge condition for entering umbra: sat_vert - pen_vert = 0.
-            if sat_vert <= umb_vert:  # +ve to -ve direction means entering umbra.
+            # +ve to -ve direction means entering umbra.
+            if sat_vert <= umb_vert:
                 return True
     return False
 
@@ -68,9 +70,10 @@ def in_penumbral_shadow(r_sat, r_sec, R_s, R_p):
     r_sec_norm = np.linalg.norm(r_sec)
 
     if dot_sec_sat < 0:
-        angle = np.arccos(dot_sec_sat / r_sat_norm / r_sec_norm)
-        sat_horiz = np.abs(r_sat_norm * np.cos(angle))
-        sat_vert = np.abs(r_sat_norm * np.sin(angle))
+        temp = np.dot(-r_sec, r_sat) / r_sat_norm / r_sec_norm
+        angle = np.arccos(temp)
+        sat_horiz = r_sat_norm * np.cos(angle)
+        sat_vert = r_sat_norm * np.sin(angle)
         x = R_p / np.sin(alpha_pen)
         pen_vert = np.tan(alpha_pen) * (x + sat_horiz)
         # Edge condition for entering penumbra: sat_vert - pen_vert = 0.

@@ -9,7 +9,7 @@ from poliastro.constants import H0_earth, rho0_earth
 from poliastro.core.perturbations import atmospheric_drag_exponential
 from poliastro.core.propagation import func_twobody
 from poliastro.twobody import Orbit
-from poliastro.twobody.events import AltitudeCrossEvent
+from poliastro.twobody.events import AltitudeCrossEvent, PenumbraEvent, UmbraEvent
 from poliastro.twobody.propagation import cowell
 
 
@@ -78,3 +78,113 @@ def test_altitude_cross_not_happening_is_ok():
     )
 
     assert altitude_cross_event.last_t == tofs[-1]
+
+
+def test_umbra():
+    tofs = np.array([0, 100, 1000]) << u.d
+    # Data for `r_sun` and `r0` taken from Howard Curtis (Example 10.8)
+    r_sun = np.array([-11747041, 139486985, 60472278]) << u.km
+    r0 = np.array([2817.899, -14110.473, -7502.672]) << u.km
+    v0 = np.array([736.138, 298.997, 164.354]) << u.km / u.s
+    orbit = Orbit.from_vectors(Earth, r0, v0)
+
+    umbra_event = UmbraEvent(orbit)
+    events = [umbra_event]
+
+    rr, _ = cowell(
+        Earth.k,
+        orbit.r,
+        orbit.v,
+        tofs,
+        events=events,
+    )
+
+    # assert ?
+
+    # Check terminal works
+    umbra_event = UmbraEvent(orbit, terminal=True)
+    events = [umbra_event]
+
+    rr, _ = cowell(
+        Earth.k,
+        orbit.r,
+        orbit.v,
+        tofs,
+        events=events,
+    )
+
+    # assert ?
+
+    # Check umbra event not firing is ok.
+    tofs = [1000] * u.s
+    r0 = np.array([281.89, 1411.473, 750.672]) << u.km
+    v0 = np.array([7.36138, 2.98997, 1.64354]) << u.km / u.s
+    orbit = Orbit.from_vectors(Earth, r0, v0)
+
+    umbra_event = UmbraEvent(orbit)
+    events = [umbra_event]
+
+    rr, _ = cowell(
+        Earth.k,
+        orbit.r,
+        orbit.v,
+        tofs,
+        events=events,
+    )
+
+    assert umbra_event.last_t == tofs[-1]
+
+
+def test_penumbra():
+    tofs = np.array([0, 100, 1000]) << u.d
+    # Data for `r_sun` and `r0` taken from Howard Curtis (Example 10.8)
+    r_sun = np.array([-11747041, 139486985, 60472278]) << u.km
+    r0 = np.array([2817.899, -14110.473, -7502.672]) << u.km
+    v0 = np.array([736.138, 298.997, 164.354]) << u.km / u.s
+    orbit = Orbit.from_vectors(Earth, r0, v0)
+
+    penumbra_event = PenumbraEvent(orbit)
+    events = [penumbra_event]
+
+    rr, _ = cowell(
+        Earth.k,
+        orbit.r,
+        orbit.v,
+        tofs,
+        events=events,
+    )
+
+    # assert ?
+
+    # Check terminal works
+    penumbra_event = PenumbraEvent(orbit, terminal=True)
+    events = [penumbra_event]
+
+    rr, _ = cowell(
+        Earth.k,
+        orbit.r,
+        orbit.v,
+        tofs,
+        events=events,
+    )
+
+    # assert ?
+
+    # Check penumbra event not firing is ok.
+    tofs = [1000] * u.s
+    r0 = np.array([281.89, 1411.473, 750.672]) << u.km
+    v0 = np.array([7.36138, 2.98997, 1.64354]) << u.km / u.s
+    orbit = Orbit.from_vectors(Earth, r0, v0)
+
+    penumbra_event = PenumbraEvent(orbit)
+    events = [penumbra_event]
+
+    rr, _ = cowell(
+        Earth.k,
+        orbit.r,
+        orbit.v,
+        tofs,
+        events=events,
+    )
+
+    assert penumbra_event.last_t == tofs[-1]

@@ -79,71 +79,84 @@ class LithobrakeEvent(AltitudeCrossEvent):
         super().__init__(0, R, terminal, direction=-1)
 
 
-class PenumbraEvent(Event):
+class EclipseEvent(Event):
+    """Base class for the eclipse event.
+
+    Parameters
+    ----------
+    orbit: poliastro.twobody.orbit.Orbit
+        Orbit of the satellite.
+    terminal: bool, optional
+        Whether to terminate integration when the event occurs, defaults to False.
+    direction: float, optional
+        Specify which direction must the event trigger, defaults to 0.
+
+    """
+
+    def __init__(self, orbit, terminal=False, direction=0):
+        super().__init__(terminal, direction)
+        self._primary_body = orbit.attractor
+        self._secondary_body = orbit.attractor.parent
+        self._epoch = orbit.epoch
+
+    def __call__(self, t, u_, k):
+        self._last_t = t
+
+        # Solve for primary and secondary bodies position w.r.t. solar system
+        # barycenter at a particular epoch.
+        (r_primary_wrt_ssb, _), (r_secondary_wrt_ssb, _) = [
+            get_body_barycentric_posvel(body.name, self._epoch + t * u.s)
+            for body in (self._primary_body, self._secondary_body)
+        ]
+        r_sec = ((r_secondary_wrt_ssb - r_primary_wrt_ssb).xyz << u.km).value
+        r_sat = (u_[:3] << u.km).value
+
+        return r_sat, r_sec, self._primary_body.R, self._secondary_body.R
+
+
+class PenumbraEvent(EclipseEvent):
     """Detect whether a satellite is in penumbra or not.
 
     Parameters
     ----------
     orbit: poliastro.twobody.orbit.Orbit
         Orbit of the satellite.
-    terminal: bool
+    terminal: bool, optional
         Whether to terminate integration when the event occurs, defaults to False.
+    direction: float, optional
+        Handle triggering of event based on whether entry is into or out of
+        penumbra, defaults to 0, i.e., event is triggered at both, entry and exit points.
 
     """
 
     def __init__(self, orbit, terminal=False, direction=0):
-        super().__init__(terminal, direction)
-        self._primary_body = orbit.attractor
-        self._secondary_body = orbit.attractor.parent
-        self._epoch = orbit.epoch
+        super().__init__(orbit, terminal, direction)
 
     def __call__(self, t, u_, k):
-        self._last_t = t
-
-        # Solve for primary and secondary bodies position w.r.t. solar system
-        # barycenter at a particular epoch.
-        (r_primary_wrt_ssb, _), (r_secondary_wrt_ssb, _) = [
-            get_body_barycentric_posvel(body.name, self._epoch + t * u.s)
-            for body in (self._primary_body, self._secondary_body)
-        ]
-        r_sec = ((r_secondary_wrt_ssb - r_primary_wrt_ssb).xyz << u.km).value
-        r_sat = (u_[:3] << u.km).value
-
-        in_penumbra = in_penumbral_shadow_fast(r_sat, r_sec, self._primary_body.R, self._secondary_body.R)
-
+        elements = super().__call__(t, u_, k)
+        in_penumbra = in_penumbral_shadow_fast(*elements)
         return in_penumbra
 
 
-class UmbraEvent(Event):
+class UmbraEvent(EclipseEvent):
     """Detect whether a satellite is in umbra or not.
 
     Parameters
     ----------
     orbit: poliastro.twobody.orbit.Orbit
         Orbit of the satellite.
-    terminal: bool
+    terminal: bool, optional
         Whether to terminate integration when the event occurs, defaults to False.
+    direction: float, optional
+        Handle triggering of event based on whether entry is into or out of
+        umbra, defaults to 0, i.e., event is triggered at both, entry and exit points.
 
     """
 
     def __init__(self, orbit, terminal=False, direction=0):
-        super().__init__(terminal, direction)
-        self._primary_body = orbit.attractor
-        self._secondary_body = orbit.attractor.parent
-        self._epoch = orbit.epoch
+        super().__init__(orbit, terminal, direction)
 
     def __call__(self, t, u_, k):
-        self._last_t = t
-
-        # Solve for primary and secondary bodies position w.r.t. solar system
-        # barycenter at a particular epoch.
-        (r_primary_wrt_ssb, _), (r_secondary_wrt_ssb, _) = [
-            get_body_barycentric_posvel(body.name, self._epoch + t * u.s)
-            for body in (self._primary_body, self._secondary_body)
-        ]
-        r_sec = ((r_secondary_wrt_ssb - r_primary_wrt_ssb).xyz << u.km).value
-        r_sat = (u_[:3] << u.km).value
-
-        in_umbra = in_umbral_shadow_fast(r_sat, r_sec, self._primary_body.R, self._secondary_body.R)
-
+        elements = super().__call__(t, u_, k)
+        in_umbra = in_umbral_shadow_fast(*elements)
         return in_umbra

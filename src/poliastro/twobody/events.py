@@ -106,7 +106,7 @@ class PenumbraEvent(Event):
             get_body_barycentric_posvel(body.name, self._epoch + t * u.s)
             for body in (self._primary_body, self._secondary_body)
         ]
-        r_sec = (r_secondary_wrt_ssb - r_primary_wrt_ssb).xyz.to(u.km).value
+        r_sec = ((r_secondary_wrt_ssb - r_primary_wrt_ssb).xyz << u.km).value
         r_sat = (u_[:3] << u.km).value
 
         in_penumbra = in_penumbral_shadow_fast(r_sat, r_sec, self._primary_body.R, self._secondary_body.R)
@@ -141,7 +141,7 @@ class UmbraEvent(Event):
             get_body_barycentric_posvel(body.name, self._epoch + t * u.s)
             for body in (self._primary_body, self._secondary_body)
         ]
-        r_sec = (r_secondary_wrt_ssb - r_primary_wrt_ssb).xyz.to(u.km).value
+        r_sec = ((r_secondary_wrt_ssb - r_primary_wrt_ssb).xyz << u.km).value
         r_sat = (u_[:3] << u.km).value
 
         in_umbra = in_umbral_shadow_fast(r_sat, r_sec, self._primary_body.R, self._secondary_body.R)

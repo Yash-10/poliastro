@@ -84,8 +84,6 @@ class PenumbraEvent(Event):
 
     Parameters
     ----------
-    r_sec: ~astropy.units.Quantity
-        Position vector of the seconday body with respect to the primary body.
     orbit: poliastro.twobody.orbit.Orbit
         Orbit of the satellite.
     terminal: bool
@@ -121,8 +119,6 @@ class UmbraEvent(Event):
 
     Parameters
     ----------
-    r_sec: ~astropy.units.Quantity
-        Position vector of the secondary body with respect to the Earth.
     orbit: poliastro.twobody.orbit.Orbit
         Orbit of the satellite.
     terminal: bool

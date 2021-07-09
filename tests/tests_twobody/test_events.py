@@ -101,6 +101,13 @@ def test_umbra():
 
     # assert ?
 
+
+def test_umbra_event_terminal_set_to_true():
+    tofs = np.array([0, 100, 1000]) << u.d
+    r0 = np.array([2817.899, -14110.473, -7502.672]) << u.km
+    v0 = np.array([736.138, 298.997, 164.354]) << u.km / u.s
+    orbit = Orbit.from_vectors(Earth, r0, v0)
+
     # Check terminal works
     umbra_event = UmbraEvent(orbit, terminal=True)
     events = [umbra_event]
@@ -115,6 +122,7 @@ def test_umbra():
 
     # assert ?
 
+def test_umbra_event_not_firing_is_ok():
     # Check umbra event not firing is ok.
     tofs = [1000] * u.s
     r0 = np.array([281.89, 1411.473, 750.672]) << u.km
@@ -156,6 +164,13 @@ def test_penumbra():
 
     # assert ?
 
+
+def test_penumbra_event_terminal_set_to_true():
+    tofs = np.array([0, 100, 1000]) << u.d
+    r0 = np.array([2817.899, -14110.473, -7502.672]) << u.km
+    v0 = np.array([736.138, 298.997, 164.354]) << u.km / u.s
+    orbit = Orbit.from_vectors(Earth, r0, v0)
+
     # Check terminal works
     penumbra_event = PenumbraEvent(orbit, terminal=True)
     events = [penumbra_event]
@@ -170,6 +185,8 @@ def test_penumbra():
 
     # assert ?
 
+
+def test_penumbra_event_not_firing_is_ok():
     # Check penumbra event not firing is ok.
     tofs = [1000] * u.s
     r0 = np.array([281.89, 1411.473, 750.672]) << u.km

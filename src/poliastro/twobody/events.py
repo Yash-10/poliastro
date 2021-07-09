@@ -135,7 +135,7 @@ class PenumbraEvent(EclipseEvent):
     def __call__(self, t, u_, k):
         elements = super().__call__(t, u_, k)
         in_penumbra = in_penumbral_shadow_fast(*elements)
-        return in_penumbra
+        return norm(u_[:3]) * in_penumbra
 
 
 class UmbraEvent(EclipseEvent):
@@ -159,4 +159,4 @@ class UmbraEvent(EclipseEvent):
     def __call__(self, t, u_, k):
         elements = super().__call__(t, u_, k)
         in_umbra = in_umbral_shadow_fast(*elements)
-        return in_umbra
+        return norm(u_[:3]) * in_umbra

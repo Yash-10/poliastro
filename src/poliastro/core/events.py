@@ -55,10 +55,7 @@ def in_umbral_shadow(r_sat, r_sec, R_s, R_p):
             umb_vert = np.tan(alpha_um) * (y - sat_horiz)
             # Edge condition for entering umbra: sat_vert - pen_vert = 0.
             # +ve to -ve direction means entering umbra.
-            if sat_vert <= umb_vert:
-                eclipse = -1
-            else:
-                eclipse = 1
+            eclipse = -1 if sat_vert <= umb_vert else 1
         else:
             eclipse = 1
 
@@ -113,9 +110,6 @@ def in_penumbral_shadow(r_sat, r_sec, R_s, R_p):
         pen_vert = np.tan(alpha_pen) * (x + sat_horiz)
         # Edge condition for entering penumbra: sat_vert - pen_vert = 0.
         # +ve to -ve direction means entering penumbra.
-        if sat_vert <= pen_vert:
-            eclipse = -1
-        elif sat_vert > pen_vert:
-            eclipse = 1
+        eclipse = -1 if sat_vert <= pen_vert else 1
 
     return eclipse

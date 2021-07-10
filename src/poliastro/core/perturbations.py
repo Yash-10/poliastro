@@ -177,7 +177,7 @@ def atmospheric_drag_model(t0, state, k, R, C_D, A_over_m, model):
 
 
 @jit
-def shadow_function(r_sat, r_sun, R):
+def shadow_function(r_sat, r_sun, R, total_eclipse=True):
     r"""Determines whether the satellite is in attractor's shadow, uses algorithm 12.3 from Howard Curtis
 
     Parameters
@@ -191,7 +191,7 @@ def shadow_function(r_sat, r_sun, R):
 
     Returns
     -------
-    bool: True if satellite is in Earth's shadow, else False.
+    angle_diff: Difference in the angles.
 
     """
     r_sat_norm = np.sqrt(np.sum(r_sat ** 2))
@@ -201,7 +201,10 @@ def shadow_function(r_sat, r_sun, R):
     theta_1 = np.arccos(R / r_sat_norm)
     theta_2 = np.arccos(R / r_sun_norm)
 
-    return theta > theta_1 + theta_2
+    if total_eclipse:
+        return theta - theta_1 + theta_2
+    else:
+        return theta - theta_1 - theta_2
 
 
 def third_body(t0, state, k, k_third, perturbation_body):
@@ -268,5 +271,5 @@ def radiation_pressure(t0, state, k, R, C_R, A_over_m, Wdivc_s, star):
     r_sat = state[:3]
     P_s = Wdivc_s / (norm(r_star) ** 2)
 
-    nu = float(not (shadow_function(r_sat, r_star, R)))
+    nu = float(not (shadow_function(r_sat, r_star, R, total_eclipse=False) > 0))
     return -nu * P_s * (C_R * A_over_m) * r_star / norm(r_star)

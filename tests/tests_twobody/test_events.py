@@ -17,7 +17,9 @@ from poliastro.twobody.propagation import cowell
 
 
 def test_eclipse_from_orekit():
-    expected_last_t = Time(datetime(2020, 1, 1, 0, 8, 30), scale="utc")  # 29.811 ms, rounded to 30ms.
+    expected_last_t = Time(
+        datetime(2020, 1, 1, 0, 8, 30), scale="utc"
+    )  # 29.811 ms, rounded to 30ms.
     initial_epoch = Time(datetime(2020, 1, 1, 0, 0, 0), scale="utc")
     # Define the geometry and orientation of the orbit
     ra = (500 * 1000) * u.m  # Apogee in [m]
@@ -44,7 +46,7 @@ def test_eclipse_from_orekit():
         events=events,
     )
 
-    assert_quantity_allclose(penumbra_event.last_t,
+    assert_quantity_allclose(ss.epoch + penumbra_event.last_t, expected_last_t)
 
 
 @pytest.mark.slow
@@ -181,7 +183,7 @@ def test_umbra_event_not_firing_is_ok():
 def test_penumbra():
     tofs = np.array([0, 100, 1000]) << u.d
     # Data for `r_sun` and `r0` taken from Howard Curtis (Example 10.8)
-    r_sun = np.array([-11747041, 139486985, 60472278]) << u.km
+    # r_sun = np.array([-11747041, 139486985, 60472278]) << u.km
     r0 = np.array([2817.899, -14110.473, -7502.672]) << u.km
     v0 = np.array([736.138, 298.997, 164.354]) << u.km / u.s
     orbit = Orbit.from_vectors(Earth, r0, v0)

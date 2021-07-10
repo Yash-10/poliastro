@@ -2,10 +2,10 @@ from astropy import units as u
 from astropy.coordinates import get_body_barycentric_posvel
 from numpy.linalg import norm
 
-from poliastro.core.events import (
-    in_penumbral_shadow as in_penumbral_shadow_fast,
-    in_umbral_shadow as in_umbral_shadow_fast,
-)
+# from poliastro.core.events import (
+#     in_penumbral_shadow as in_penumbral_shadow_fast,
+#     in_umbral_shadow as in_umbral_shadow_fast,
+# )
 from poliastro.core.perturbations import shadow_function as shadow_function_fast
 
 

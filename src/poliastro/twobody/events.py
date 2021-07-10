@@ -1,9 +1,13 @@
 from astropy import units as u
+from astropy.coordinates import get_body_barycentric_posvel
 from numpy.linalg import norm
 
-from astropy.coordinates import get_body_barycentric_posvel
+from poliastro.core.events import (
+    in_penumbral_shadow as in_penumbral_shadow_fast,
+    in_umbral_shadow as in_umbral_shadow_fast,
+)
+from poliastro.core.perturbations import shadow_function as shadow_function_fast
 
-from poliastro.core.events import in_umbral_shadow as in_umbral_shadow_fast, in_penumbral_shadow as in_penumbral_shadow_fast
 
 class Event:
     """Base class for event functionalities.
@@ -131,11 +135,18 @@ class PenumbraEvent(EclipseEvent):
 
     def __init__(self, orbit, terminal=False, direction=0):
         super().__init__(orbit, terminal, direction)
+        self._total_eclipse = False  # Check for penumbra i.e. partial eclipse.
 
     def __call__(self, t, u_, k):
-        elements = super().__call__(t, u_, k)
-        in_penumbra = in_penumbral_shadow_fast(*elements)
-        return norm(u_[:3]) * in_penumbra
+        r_sat, r_sec, primary_body_R, secondary_body_R = super().__call__(t, u_, k)
+        r_sat = (r_sat << u.km).value
+        r_sec = (r_sec << u.km).value
+        primary_body_R = (primary_body_R << u.km).value
+        # secondary_body_R = (secondary_body_R << u.km).value
+        angle_diff = shadow_function_fast(
+            r_sat, r_sec, primary_body_R, total_eclipse=self._total_eclipse
+        )
+        return angle_diff
 
 
 class UmbraEvent(EclipseEvent):
@@ -155,8 +166,14 @@ class UmbraEvent(EclipseEvent):
 
     def __init__(self, orbit, terminal=False, direction=0):
         super().__init__(orbit, terminal, direction)
+        self._total_eclipse = True  # Check for umbra.
 
     def __call__(self, t, u_, k):
-        elements = super().__call__(t, u_, k)
-        in_umbra = in_umbral_shadow_fast(*elements)
-        return norm(u_[:3]) * in_umbra
+        r_sat, r_sec, primary_body_R, _ = super().__call__(t, u_, k)
+        r_sat = (r_sat << u.km).value
+        r_sec = (r_sec << u.km).value
+        primary_body_R = (primary_body_R << u.km).value
+        angle_diff = shadow_function_fast(
+            r_sat, r_sec, primary_body_R, total_eclipse=self._total_eclipse
+        )
+        return angle_diff

@@ -1,7 +1,10 @@
+from datetime import datetime
+
 import numpy as np
 import pytest
 from astropy import units as u
 from astropy.tests.helper import assert_quantity_allclose
+from astropy.time import Time
 from numpy.linalg import norm
 
 from poliastro.bodies import Earth
@@ -11,6 +14,37 @@ from poliastro.core.propagation import func_twobody
 from poliastro.twobody import Orbit
 from poliastro.twobody.events import AltitudeCrossEvent, PenumbraEvent, UmbraEvent
 from poliastro.twobody.propagation import cowell
+
+
+def test_eclipse_from_orekit():
+    expected_last_t = Time(datetime(2020, 1, 1, 0, 8, 30), scale="utc")  # 29.811 ms, rounded to 30ms.
+    initial_epoch = Time(datetime(2020, 1, 1, 0, 0, 0), scale="utc")
+    # Define the geometry and orientation of the orbit
+    ra = (500 * 1000) * u.m  # Apogee in [m]
+    rp = (400 * 1000) * u.m  # Perigee in [m]
+    a = ((rp + ra + 2 * Earth.R.to(u.m)) / 2.0).to(u.m)  # Semi-major axis in [m]
+    ecc = (1.0 - (rp + Earth.R) / a) * u.one  # Eccentricity of the orbit
+    inc = (87.0 * np.pi / 180) * u.rad  # Inclination of the orbit [rad]
+    argp = (20.0 * np.pi / 180) * u.rad  # The argument of perigee [rad]
+    raan = (10.0 * np.pi / 180) * u.rad  # The RAAN of the orbit [rad]
+    nu = 0.0 * u.rad  # True anomaly [rad]
+
+    ss = Orbit.from_classical(Earth, a, ecc, inc, raan, argp, nu, epoch=initial_epoch)
+
+    tofs = [1.0] * u.hr
+
+    penumbra_event = PenumbraEvent(ss, terminal=True)
+    events = [penumbra_event]
+
+    rr, _ = cowell(
+        Earth.k,
+        ss.r,
+        ss.v,
+        tofs,
+        events=events,
+    )
+
+    assert_quantity_allclose(penumbra_event.last_t,
 
 
 @pytest.mark.slow
@@ -121,6 +155,7 @@ def test_umbra_event_terminal_set_to_true():
     )
 
     # assert ?
+
 
 def test_umbra_event_not_firing_is_ok():
     # Check umbra event not firing is ok.
